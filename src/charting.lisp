@@ -10,6 +10,12 @@
 ;;might be able to: you can merge-pathnames with (component-pathname (find-system :my-system)) probably
 (defvar *default-font-file* "/usr/share/fonts/truetype/freefont/FreeSans.ttf")
 
+(defmethod default-font-height ((chart chart))
+  (aref (string-bounding-box "A"
+			     (label-size chart)
+			     (get-font *default-font-file*))
+	3))
+
 (defvar *color-stack* +default-colors+)
 
 (defclass chart ()
