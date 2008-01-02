@@ -11,11 +11,13 @@
   :author "<programmers@acceleration.net>"
   :licence "LGPL (or talk to me)"
   :version "0.1"
-  :components
-  ((:module :src
-    :components ((:file "packages")
-		 (:file "png" :depends-on ("packages"))
-		 (:file "cl-vector-chart" :depends-on ("png"))
-		 (:file "charts" :depends-on ("cl-vector-chart"))		 
-		 ))))
+  :depends-on (#:vecto #:arnesi)
+  :components ((:module :src
+			:components ((:file "packages")
+				     (:file "charting" :depends-on ("packages"))))
+	       (:module :test
+			:depends-on (:src)
+			:components ((:file "lisp-unit")
+				     (:file "charting" :depends-on ("lisp-unit"))
+			))))
 
