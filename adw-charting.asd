@@ -14,7 +14,9 @@
   :depends-on (#:vecto #:arnesi)
   :components ((:module :src
 			:components ((:file "packages")
-				     (:file "charting" :depends-on ("packages"))))
+				     (:file "charting" :depends-on ("packages"))
+				     (:file "pie-charts" :depends-on ("charting"))
+				     (:file "line-charts" :depends-on ("charting"))))
 	       (:module :test
 			:depends-on (:src)
 			:components ((:file "lisp-unit")

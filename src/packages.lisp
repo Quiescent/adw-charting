@@ -8,8 +8,10 @@
        ;;functions
        :total
        :render-chart
-       :make-items
+       :make-slices
        ;;classes
-       :data-item
-       :pie-chart     
+       :slice       
+       :pie-chart
+       :series
+       :line-chart
     ))
