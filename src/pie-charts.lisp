@@ -125,7 +125,4 @@ make-items 10 10 10  makes 3 items with 10 as the value and label"
 	     (rounded-rectangle label-x label-y box-width box-width 5 5)
 	     (fill-and-stroke))
 	   (draw-string (+ box-width label-x (/ box-width 2)) (+ label-y text-height) label)))
-	 
 	  labelboxes)))
-
-(defmethod draw-legend ())

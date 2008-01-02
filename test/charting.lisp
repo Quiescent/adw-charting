@@ -4,9 +4,9 @@
 (in-package #:adw-charting-tests)
 
 (defparameter *pie-chart-data* (list
-				(make-instance 'data-item :value 10)
-				(make-instance 'data-item :value 15)
-				(make-instance 'data-item :value 20)))
+				(make-instance 'slice :value 10)
+				(make-instance 'slice :value 15)
+				(make-instance 'slice :value 20)))
 
 (define-test pie-chart-total
   (assert-equal 10 (total (make-instance 'pie-chart :total 10))))
