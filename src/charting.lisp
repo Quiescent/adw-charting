@@ -62,7 +62,7 @@
 (defmethod color ((item chart-element))
   (aif (slot-value item 'color)
        it
-       (pop *color-stack*)))
+       (setf (color item) (pop *color-stack*))))
 
 
 (defgeneric set-fill (obj)
