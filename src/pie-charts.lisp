@@ -29,7 +29,7 @@ make-items 10 10 10  makes 3 items with 10 as the value and label"
 			    :label label
 			    :color color))
 	   (make-instance 'slice :value item
-				  :label (princ-to-string item))))
+			  :label (princ-to-string item))))
    items))
 
 (defmethod radius ((chart pie-chart))
@@ -57,6 +57,8 @@ make-items 10 10 10  makes 3 items with 10 as the value and label"
 		      (label elem))
 	 	 (decf label-y label-height))))
 
+(defmethod has-data-p ((chart pie-chart))
+  (and (slices chart) (< 0 (length (slices chart)))))
 
 (defmethod draw-chart ((chart pie-chart))
   (let* ((radius (radius chart))
@@ -76,57 +78,57 @@ make-items 10 10 10  makes 3 items with 10 as the value and label"
       (centered-circle-path cx cy (+ 1 radius))
       (clip-path)
       (end-path-no-op)
-      (cond
-	((= 0 (length slices));;supress the legend if we have no slices
-	 (setf (draw-legend-p chart) nil))
-	((= 1 (length slices)) ;;only one slice, draw all over the damn thing and call it good.
-	 (set-fill (first slices))
-	 (rectangle 0 0 width height)
-	 (fill-path))
-	((> (length slices) 1) ;; more than one slice, go for it
-	 (let* ((bigr (* 3 radius))
-		(x (+ cx bigr))
-		(y cy)
-		(angle 0)
-		(val-to-radians (/ (* 2 pi) (total chart)))
-		(half-pi (/ pi 2)))
-	   (dolist (item slices)
-	     (let* ((color (color item))
-		    (segment (* val-to-radians (value item)))
-		    (slice-size (+ angle segment))
-		    (endx (+ cx (* bigr (cos slice-size))))
-		    (endy (+ cy (* bigr (sin slice-size))))
-		    (obtuse-p (> segment half-pi)))
-	       (format *trace-output* "Making slice for ~a, obtuse-p ~a ~%" (label item) obtuse-p)
-	       ;;draw the sector as a huge wedge, the clipping path will take care of the spill-over
-	       (move-to cx cy)
-	       (line-to x y)
-	       ;;if we're too big to encompassed with a wedge, fan out.  Assumes the slices
-	       ;; are drawn counter-clockwise, starting at 3 o'clock.
-	       (when obtuse-p		   
-		 ;; move up to the top of graph, at the left or right edge depending on where we
-		 ;; start
-		 (when (>= y cy)
-		   (line-to (if (> x cx)
-				(width chart)
-				0)
-			    (height chart)))
+      (if (has-data-p chart)	  
+	  (if (= 1 (length slices));;only one slice, draw all over the damn thing and call it good.
+	      (progn 
+		(set-fill (first slices))
+		(rectangle 0 0 width height)
+		(fill-path)) 
+	      (let* ((bigr (* 3 radius));; more than one slice, go for it
+		     (x (+ cx bigr))
+		     (y cy)
+		     (angle 0)
+		     (val-to-radians (/ (* 2 pi) (total chart)))
+		     (half-pi (/ pi 2)))
+		(dolist (item slices)
+		  (let* ((color (color item))
+			 (segment (* val-to-radians (value item)))
+			 (slice-size (+ angle segment))
+			 (endx (+ cx (* bigr (cos slice-size))))
+			 (endy (+ cy (* bigr (sin slice-size))))
+			 (obtuse-p (> segment half-pi)))
+		    (format *trace-output* "Making slice for ~a, obtuse-p ~a ~%" (label item) obtuse-p)
+		    ;;draw the sector as a huge wedge, the clipping path will take care of the spill-over
+		    (move-to cx cy)
+		    (line-to x y)
+		    ;;if we're too big to encompassed with a wedge, fan out.  Assumes the slices
+		    ;; are drawn counter-clockwise, starting at 3 o'clock.
+		    (when obtuse-p		   
+		      ;; move up to the top of graph, at the left or right edge depending on where we
+		      ;; start
+		      (when (>= y cy)
+			(line-to (if (> x cx)
+				     (width chart)
+				     0)
+				 (height chart)))
 
-		 ;; if we cross the center-y, go all the way around
-		 (when (and (>= y cy) (> cy endy))
-		   (line-to 0 (height chart))
-		   (line-to 0 0))
+		      ;; if we cross the center-y, go all the way around
+		      (when (and (>= y cy) (> cy endy))
+			(line-to 0 (height chart))
+			(line-to 0 0))
 
-		 ;; if we cross the center-x, go all the way right
-		 (when (> endx cx)		   
-		   (line-to (width chart) 0)))
+		      ;; if we cross the center-x, go all the way right
+		      (when (> endx cx)		   
+			(line-to (width chart) 0)))
 	     
-	       (line-to endx endy)
-	       (line-to cx cy)
-	       (close-subpath)
-	       (set-fill color)
-	       (fill-and-stroke)
-	       ;;update our counters
-	       (setf x endx
-		     y endy
-		     angle slice-size)))))))))
+		    (line-to endx endy)
+		    (line-to cx cy)
+		    (close-subpath)
+		    (set-fill color)
+		    (fill-and-stroke)
+		    ;;update our counters
+		    (setf x endx
+			  y endy
+			  angle slice-size)))))
+	  (setf (draw-legend-p chart) nil) ;;no data, supress the legend
+	  ))))
