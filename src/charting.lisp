@@ -29,6 +29,9 @@
    (margin :accessor margin
 	   :initarg :margin
 	   :initform 10)
+   (draw-legend-p :accessor draw-legend-p
+		  :initarg :draw-legend-p
+		  :initform T)
    (background :accessor background
 	       :initarg :background
 	       :initform '(1 1 1))))
@@ -51,20 +54,19 @@
     (clear-canvas)
     (setq *color-stack* +default-colors+) ;ensure we have colors to auto-assign
     (draw-chart chart)
+    (when (draw-legend-p chart)
+      (draw-legend chart))
     (save-png filename)))
-
 
 (defclass chart-element ()
   ((color :accessor color :initarg :color :initform nil)
    (label :accessor label :initarg :label :initform "none"))
-  (:documentation "this is a super-class for various chart elements")
-  )
+  (:documentation "this is a super-class for various chart elements"))
 
 (defmethod color ((item chart-element))
   (aif (slot-value item 'color)
        it
        (setf (color item) (pop *color-stack*))))
-
 
 (defgeneric set-fill (obj)
   (:documentation "shortcuts for setting the vecto fill color"))
