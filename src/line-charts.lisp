@@ -55,36 +55,31 @@
 	  (when (> 0 min-x)
 	    (incf gx (abs (* scale-x min-x))))
 
-	  ;;define our graph bounds
-	  (let ((max-graph-x (truncate (+ graph-x graph-width)))
-		(min-graph-x graph-x)
-		(max-graph-y (- (truncate (+ graph-y graph-height)) graph-margin))
-		(min-graph-y (+ (truncate graph-y) graph-margin)))
-	    (flet ((convert-point (x y)
-		     "convert a point from data space to graph space"
-		     (values (+ gx (* scale-x x))
-			     (+ gy (* scale-y y)))))    
+	  (flet ((convert-point (x y)
+		   "convert a point from data space to graph space"
+		   (values (+ gx (* scale-x x))
+			   (+ gy (* scale-y y)))))    
     
 					;draw the 0 line
-	      (multiple-value-bind (x y) (convert-point min-x 0)
-		(move-to x y))
-	      (multiple-value-bind (x y) (convert-point max-x 0)
-		(line-to x y))
-	      (set-stroke '(0 0 0))
-	      (stroke)
-	      (set-line-width 2) ;TODO: make this a property of the series
-	      (dolist (series (series chart))
-		(with-graphics-state
-		  (set-stroke series)
-		  (loop for (x y) in (data series)
-			counting T into i
-			for first-p = T then nil
-			do (multiple-value-bind (px py) (convert-point x y)			     
-			     (if first-p
-				 (move-to px py)
-				 (line-to px py))))
-		  (stroke))
-		))))))))
+	    (multiple-value-bind (x y) (convert-point min-x 0)
+	      (move-to x y))
+	    (multiple-value-bind (x y) (convert-point max-x 0)
+	      (line-to x y))
+	    (set-stroke '(0 0 0))
+	    (stroke)
+	    (set-line-width 2)		;TODO: make this a property of the series
+	    (dolist (series (series chart))
+	      (with-graphics-state
+		(set-stroke series)
+		(loop for (x y) in (data series)
+		      for first-p = T then nil
+		      counting T into i
+		      do (multiple-value-bind (px py) (convert-point x y)			     
+			   (if first-p
+			       (move-to px py)
+			       (line-to px py))))
+		(stroke))
+	      )))))))
 
 (defmethod draw-legend ((chart line-chart))
   (let* ((label-x (margin chart))
