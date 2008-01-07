@@ -9,12 +9,9 @@
   "computes the pie-chart total based on the data, if no value is explicitly set"
   (aif (slot-value chart 'total)
        it
-       (let ((total 0))
-	 (mapc
-	  #'(lambda (item)
-	      (incf total (value item)))
-	  (slices chart))
-	 total)))
+       (loop for item in (slices chart)
+	     summing (value item) into total
+	     finally (return total))))
 
 (defclass slice (chart-element)  
   ((value :accessor value :initarg :value))
