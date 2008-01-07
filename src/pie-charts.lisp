@@ -10,8 +10,7 @@
   (aif (slot-value chart 'total)
        it
        (loop for item in (slices chart)
-	     summing (value item) into total
-	     finally (return total))))
+	     summing (value item))))
 
 (defclass slice (chart-element)  
   ((value :accessor value :initarg :value))
@@ -57,8 +56,9 @@ make-items 10 10 10  makes 3 items with 10 as the value and label"
 		      (label elem))
 	 	 (decf label-y label-height))))
 
+
 (defmethod has-data-p ((chart pie-chart))
-  (and (slices chart) (< 0 (length (slices chart)))))
+  (slices chart))
 
 (defmethod draw-chart ((chart pie-chart))
   (let* ((radius (radius chart))

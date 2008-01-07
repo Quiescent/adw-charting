@@ -1,6 +1,6 @@
 (in-package :adw-charting)
 
-(defparameter +default-colors+ '((1 1 0)
+(defparameter +default-colors+ '((1 1 0) ;rgb 0-1
 				 (1 0 1)
 				 (1 0 0)
 				 (0 1 1)
@@ -9,8 +9,6 @@
 
 ;;might be able to: you can merge-pathnames with (component-pathname (find-system :my-system)) probably
 (defvar *default-font-file* "/usr/share/fonts/truetype/freefont/FreeSans.ttf")
-
-
 
 (defvar *color-stack* +default-colors+)
 
@@ -37,26 +35,33 @@
 	       :initform '(1 1 1))))
 
 (defmethod default-font-height ((chart chart))
+  "gets the pixel height of the default font, at the size specified in the chart's label-size"
   (aref (string-bounding-box "A"
 			     (label-size chart)
 			     (get-font *default-font-file*))
 	3))
 
+(defmethod default-font-width ((chart chart) text)
+  "gets the pixel width of the default font, as the size specified in the chart's label-size"
+  (aref (string-bounding-box text
+			     (label-size chart)
+			     (get-font *default-font-file*))
+	2))
+
 (defgeneric render-chart (chart filename)
-  (:documentation "renders the chart to the given file"))
+  (:documentation "renders the chart to the given file")
+  (:method ((chart chart) filename)
+	   (with-canvas (:width (width chart) :height (height chart))
+	     (set-fill chart) 
+	     (clear-canvas) ;;fills in the background
+	     (setq *color-stack* +default-colors+) ;ensure we have colors to auto-assign
+	     (draw-chart chart)
+	     (when (draw-legend-p chart)
+	       (draw-legend chart))
+	     (save-png filename))))
 
 (defgeneric draw-chart (chart)
   (:documentation "draws the chart, assuming a vecto canvas is open"))
-
-(defmethod render-chart ((chart chart) filename)
-  (with-canvas (:width (width chart) :height (height chart))
-    (set-fill chart)
-    (clear-canvas)
-    (setq *color-stack* +default-colors+) ;ensure we have colors to auto-assign
-    (draw-chart chart)
-    (when (draw-legend-p chart)
-      (draw-legend chart))
-    (save-png filename)))
 
 (defclass chart-element ()
   ((color :accessor color :initarg :color :initform nil)
