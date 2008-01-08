@@ -20,9 +20,6 @@
 				 (2.0d0 "POP3-Additional"))))
    "pie-chart-sample.png"))
 
-
-
-;;see output at http://ryepup.unwashedmeme.com/files/line-chart-sample.png
 (defun line-chart-sample ()  
   "draws a simple line chart"
   (let* ((seriesA (make-instance 'series
