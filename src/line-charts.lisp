@@ -7,6 +7,9 @@
 (defclass line-chart (chart)
   ((series :accessor series :initarg :series :documentation "list of series objects" )))
 
+(defmethod chart-elements ((chart line-chart))
+  (series chart))
+
 (defun find-extremes (data)
   "takes a list of (x y) pairs, and returns the ((x-min y-min) (x-max y-max))"
   (loop for (x y) in data
@@ -78,26 +81,12 @@
 			   (if first-p
 			       (move-to px py)
 			       (line-to px py))))
-		(stroke))
-	      )))))))
+		(stroke)))))))))
 
-(defmethod draw-legend ((chart line-chart))
-  (let* ((label-x (margin chart))
-	 (label-y (margin chart))
-	 (font (get-font *default-font-file*))
-	 (text-height (default-font-height chart))
-	 (box-length (* 3 text-height))
-	 (label-spacing text-height))
-    (set-font font (label-size chart)) ;set the font
-    (set-rgb-fill 0 0 0) ;text should be black
-    (dolist (series (series chart))
-      (with-graphics-state
-	(set-fill (color series))
-	(rounded-rectangle label-x label-y box-length box-length text-height text-height)
-	(fill-and-stroke))
-      (draw-string (+ box-length label-x label-spacing)
-		   (+ label-y text-height)
-		   (label series))
-	 
-      (incf label-x (+ box-length label-spacing label-spacing
-		       (default-font-width chart (label series)))))))
+(defmethod translate-to-next-label ((chart line-chart) w h)
+  (declare (ignore chart h))
+  (translate w 0))
+
+(defmethod legend-start-coords ((chart line-chart) box-size label-spacing)
+  (declare (ignore box-size label-spacing))
+  (list (margin chart) (margin chart)))

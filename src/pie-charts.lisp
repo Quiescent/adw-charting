@@ -12,6 +12,9 @@
        (loop for item in (slices chart)
 	     summing (value item))))
 
+(defmethod chart-elements ((chart pie-chart))
+  (slices chart))
+
 (defclass slice (chart-element)  
   ((value :accessor value :initarg :value))
   (:documentation "this is a slice of a pie chart"))
@@ -35,27 +38,13 @@ make-items 10 10 10  makes 3 items with 10 as the value and label"
   (truncate (/ (- (height chart) 10)
 	       2)))
 
-(defmethod draw-legend ((chart pie-chart))
-  (let* ((font (get-font *default-font-file*))
-	 (text-height (default-font-height chart))
-	 (box-length (* 3 text-height))
-	 (label-spacing (/ box-length 2))
-	 (radius (radius chart))
-	 (label-height (+ box-length text-height))
-	 (label-x (+ radius radius box-length (margin chart)))
-	 (label-y (- (height chart) label-height)))
-    (set-font font (label-size chart)) ;set the font
-    (set-rgb-fill 0 0 0) ;text should be black
-    (dolist (elem (slices chart))
-      (with-graphics-state
-	   (set-fill (color elem))
-	   (rounded-rectangle label-x label-y box-length box-length text-height text-height)
-	   (fill-and-stroke))
-      	 (draw-string (+ box-length label-x label-spacing)
-		      (+ label-y text-height)
-		      (label elem))
-	 	 (decf label-y label-height))))
+(defmethod translate-to-next-label ((chart pie-chart) w h)
+  (declare (ignore chart w))
+  (translate 0 (- h)))
 
+(defmethod legend-start-coords ((chart pie-chart) box-size label-spacing)
+  (list (* 2 (+ (radius chart) (margin chart)))
+	(- (height chart) box-size label-spacing)))
 
 (defmethod has-data-p ((chart pie-chart))
   (slices chart))
@@ -97,7 +86,7 @@ make-items 10 10 10  makes 3 items with 10 as the value and label"
 			 (endx (+ cx (* bigr (cos slice-size))))
 			 (endy (+ cy (* bigr (sin slice-size))))
 			 (obtuse-p (> segment half-pi)))
-		    (format *trace-output* "Making slice for ~a, obtuse-p ~a ~%" (label item) obtuse-p)
+		    (format *trace-output* "Making slice for ~a (~a), obtuse-p ~a ~%" (label item) (value item) obtuse-p)
 		    ;;draw the sector as a huge wedge, the clipping path will take care of the spill-over
 		    (move-to cx cy)
 		    (line-to x y)
