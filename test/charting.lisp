@@ -34,3 +34,24 @@
 			       :background '(.7 .7 .7)
 			       :series (list seriesA seriesB))))
     (render-chart chart "line-chart-sample.png")))
+
+(defun line-chart-with-axis-labels ()  
+  "draws a simple line chart"
+  (let* ((seriesA (make-instance 'series
+				 :label "SeriesA"
+					;data expressed as a list (x y) pairs
+				 :data '((-1 -2) (0 4) (1 5) (4 6) (5 -3))))
+	 (seriesB (make-instance 'series
+				 :label "SeriesB"
+				 :data '((-1 4) (0 -2) (1 6) (5 -2) (6 5))))
+	 (y-axis (make-instance 'axis
+				:label "widgets"
+				:label-formatter #'(lambda (x-val)
+						     (format nil "~$" x-val))))
+	 (chart (make-instance 'line-chart
+			       :width 400
+			       :height 300
+			       :background '(.7 .7 .7)
+			       :series (list seriesA seriesB)
+			       :y-axis y-axis)))
+    (render-chart chart "line-chart-with-axis-labels.png")))

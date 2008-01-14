@@ -5,13 +5,15 @@
     (:use #:cl #:vecto #:arnesi)
     (:shadow :value)
     (:export
-       ;;functions
+       ;;generic
        :total
        :render-chart
-       :make-slices
-       ;;classes
+       ;;pie-chart related
        :slice       
        :pie-chart
+       :make-slices
+       ;;line-chart related
        :series
        :line-chart
+       :axis
     ))
