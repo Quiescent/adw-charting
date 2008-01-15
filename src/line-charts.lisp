@@ -92,18 +92,7 @@
     
 
     
-    ;;adjust our graph region to account for labels
-    (awhen (y-axis chart)
-      (let* ((text-width (default-font-width chart "1234"))
-	    (offset (+ text-width
-		       (* text-height (if (label it)
-					  3
-					  1.5)))))
-	;;increase graph-x to account
-	(incf graph-x offset)
-	;;decrease the width
-	(decf graph-width offset)
-	(setf y-axis-x (- graph-x graph-margin text-width))))
+   
 
     (awhen (x-axis chart)
       (let ((offset (* text-height
@@ -112,8 +101,7 @@
 			   2))))	
 	(incf graph-y offset)
 	(decf graph-height offset)
-	(setf x-axis-y (- graph-y graph-margin text-height))
-	))
+	(setf x-axis-y (- graph-y graph-margin text-height))))
 
     ;;set the chart background as the avg between the background color and 1
     (set-fill (mapcar #'(lambda (c)
@@ -150,6 +138,22 @@
 	   (mapcan #'(lambda (series)
 		       (find-extremes (data series)))
 		   (series chart)))
+	;;adjust our graph region to account for labels
+	(awhen (y-axis chart)
+	  (let* ((text-width (loop for y in (list min-y max-y)
+				   maximizing (default-font-width chart y) into longest
+				   finally (return longest)))
+		 (offset (+ text-width
+			    (* text-height (if (label it)
+					       3
+					       1.5)))))
+	    ;;increase graph-x to account
+	    (incf graph-x offset)
+	    ;;decrease the width
+	    (decf graph-width offset)
+	    (setf y-axis-x (- graph-x graph-margin text-width))))
+
+	
 	(let* ((gx graph-x)
 	       (gy graph-y)
 	       (scale-x (/ graph-width (- max-x min-x)))
