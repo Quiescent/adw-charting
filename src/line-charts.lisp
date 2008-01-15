@@ -6,6 +6,10 @@
   ((data :accessor data :initarg :data :documentation "a list of (x y) pairs (as lists, not cons cells)"))  
   (:documentation "represents a line on a line chart"))
 
+(defun make-series (label data &key (color nil))
+  "makes a series"
+  (make-instance 'series :label label :data data :color color))
+
 (defclass axis ()
   ((label :accessor label
 	  :initarg :label
@@ -21,6 +25,18 @@
 		     :documentation "determines if grid-lines are drawn across the chart"))
   (:documentation "represents an axis on a line chart"))
 
+(defun make-axis (label &key (control-string nil control-string-supplied-p)
+			(draw-gridlines-p T) (label-formatter nil))
+  "creates an axis object"
+  (let ((axis (make-instance 'axis :label label :draw-gridlines-p draw-gridlines-p)))
+    (when control-string-supplied-p
+      (setf (label-formatter axis)
+	    #'(lambda (val)
+		(format nil control-string val))))
+    (when label-formatter
+      (setf (label-formatter axis) label-formatter))
+    axis))
+
 (defclass line-chart (chart)
   ((series :accessor series
 	   :initarg :series
@@ -33,6 +49,16 @@
 	   :initarg :y-axis
 	   :initform nil
 	   :documentation "and axis object to determine formatting for the Y axis")))
+
+(defun make-line-chart (width height &key series (y-axis nil) (x-axis nil) (background nil))
+  "creates a line-chart object"
+  (make-instance 'line-chart
+		 :width width
+		 :height height
+		 :series series
+		 :y-axis y-axis
+		 :x-axis x-axis
+		 :background background))
 
 (defmethod chart-elements ((chart line-chart))
   (series chart))
@@ -51,6 +77,7 @@
   (and (series chart) (find-if-not #'null (mapcar #'data (series chart)))))
 
 (defmethod draw-chart ((chart line-chart))
+  (declare (ignore _))
   (let* ((width (width chart))
 	 (height (height chart))
 	 (graph-margin (margin chart))
@@ -60,17 +87,33 @@
 	 (graph-width (- width graph-margin graph-margin))
 	 (graph-x graph-margin)
 	 (graph-y (- height graph-height graph-margin))
-	 (y-axis-x (+ graph-x (* 1.75 text-height))))
+	 (y-axis-x nil)
+	 (x-axis-y nil))
     
 
     
     ;;adjust our graph region to account for labels
-    (when (y-axis chart)
-      (let ((offset (+ (default-font-width chart "1234") (* 2.5 text-height))))
-      ;;increase graph-x to account
-      (incf graph-x offset)
-      ;;decrease the width
-      (decf graph-width offset)))
+    (awhen (y-axis chart)
+      (let* ((text-width (default-font-width chart "1234"))
+	    (offset (+ text-width
+		       (* text-height (if (label it)
+					  3
+					  1.5)))))
+	;;increase graph-x to account
+	(incf graph-x offset)
+	;;decrease the width
+	(decf graph-width offset)
+	(setf y-axis-x (- graph-x graph-margin text-width))))
+
+    (awhen (x-axis chart)
+      (let ((offset (* text-height
+		       (if (label it)
+			   3
+			   2))))	
+	(incf graph-y offset)
+	(decf graph-height offset)
+	(setf x-axis-y (- graph-y graph-margin text-height))
+	))
 
     ;;set the chart background as the avg between the background color and 1
     (set-fill (mapcar #'(lambda (c)
@@ -85,7 +128,8 @@
     (when (or (y-axis chart) (x-axis chart))      
       (set-font (get-font *default-font-file*) (label-size chart))
       (set-rgb-fill 0 0 0))
-    
+
+    ;;draw the y-label
     (awhen (y-axis chart)
       (with-graphics-state
 	;;move to the site of the y axis label
@@ -93,6 +137,10 @@
 	;;rotate the canvas so we're sideways	
 	(rotate (/ pi 2))
 	(draw-centered-string 0 0 (label it))))
+
+    ;;draw the x-label
+    (awhen (and (x-axis chart) (label (x-axis chart)))
+      (draw-centered-string (+ graph-x (/ graph-width 2)) (+ (/ graph-margin 2) legend-space) it))
 
     (when (has-data-p chart)
       ;;figure out the right scaling factors so we fill the graph    
@@ -123,43 +171,67 @@
 
 
 
-	    ;;draw labels at regular intervals
-	    (awhen (y-axis chart)
-	      (flet ((draw-label (y)
-		       (destructuring-bind (_ data-y) (graph-point->data-point 0 y)
-			 (draw-string y-axis-x y (funcall (label-formatter it) data-y))
-			 (when (draw-gridlines-p it)
-			   (with-graphics-state
-			     (set-line-width 1)
-			     (set-stroke (background chart))
-			     (set-dash-pattern #(10 2) 0)
-			     (move-to graph-x y)
-			     (line-to (+ graph-x graph-width) y)
-			     (stroke)		     
-			     )
-			   )
-			 ))
-		     (at-top-p (y)
-		       (< y (+ graph-height graph-y)))
-		     (at-bottom-p (y)
-		       (> y graph-y)))
-		(let ((spacing (* text-height 3)))
-		  (destructuring-bind (_ gy) (data-point->graph-point 0 0)
-		    ;;start at 0, go up until we can't draw any more
-		    (loop for uy = gy then (+ uy spacing)
-			  for dy = (- gy spacing) then (- dy spacing)
-			  while (or (at-top-p uy) (at-bottom-p dy))
-			  when (at-top-p uy) do (draw-label uy)
-			  when (at-bottom-p dy) do (draw-label dy)
-			  )))))
+
+	    (when (or (y-axis chart) (x-axis chart))
+	      (macrolet ((draw-gridline ((axis) &body gridline)
+			   `(when (draw-gridlines-p ,axis)
+			     (with-graphics-state
+			       (set-line-width 1)
+			       (set-stroke (background chart))
+			       (set-dash-pattern #(10 2) 0)
+			       ,@gridline
+			       (stroke)))
+			   ))
+		(destructuring-bind (gx gy) (data-point->graph-point 0 0)
+		  ;;draw y labels at regular intervals
+		  (awhen (y-axis chart)
+		    (flet ((draw-label (y)
+			     (destructuring-bind (_ data-y) (graph-point->data-point 0 y)
+			       (draw-string y-axis-x y (funcall (label-formatter it) data-y))
+			       (draw-gridline (it)
+					      (move-to graph-x y)
+					      (line-to (+ graph-x graph-width) y))))
+			   (at-top-p (y)
+			     (< y (+ graph-height graph-y)))
+			   (at-bottom-p (y)
+			     (> y graph-y)))
+		      (let ((spacing (* text-height 3)))
+			;;start at 0, go up until we can't draw any more
+			(loop for uy = gy then (+ uy spacing)
+			      for dy = (- gy spacing) then (- dy spacing)
+			      while (or (at-top-p uy) (at-bottom-p dy))
+			      when (at-top-p uy) do (draw-label uy)
+			      when (at-bottom-p dy) do (draw-label dy)))))
+
+		  (awhen (x-axis chart)
+		    (flet ((draw-label (x)
+			     (destructuring-bind (data-x _) (graph-point->data-point x 0)
+			       (let ((label (funcall (label-formatter it) data-x)))
+				 (draw-centered-string x x-axis-y label)
+				 (draw-gridline (it)
+						(move-to x graph-y)
+						(line-to x (+ graph-y graph-height)))
+				 label)))
+			   (at-left-p (x)
+			     (> x graph-x))
+			   (at-right-p (x)
+			     (< x (+ graph-width graph-x))))
+		      ;;start at the 0, go left / right while we can
+		      (let ((spacing (* 2 (default-font-width chart (draw-label gx)))))
+			(loop for rx = (+ gx spacing) then (+ rx spacing)
+			      for lx = (- gx spacing) then (- lx spacing)
+			      while (or (at-right-p rx)
+					(at-left-p lx))
+			      when (at-right-p rx) do (draw-label rx)
+			      when (at-left-p lx) do (draw-label lx))))))))
 	    
 
 	    
 					;draw the 0 line
-	    (destructuring-bind (x y) (data-point->graph-point min-x 0)
-	      (move-to x y))
-	    (destructuring-bind (x y) (data-point->graph-point max-x 0)
-	      (line-to x y))
+
+	    (apply #'move-to (data-point->graph-point min-x 0))
+	    (apply #'line-to (data-point->graph-point max-x 0))
+
 	    (set-stroke '(0 0 0))
 	    (stroke)
 	    (set-line-width 2)		;TODO: make this a property of the series
@@ -169,15 +241,9 @@
 		(loop for (x y) in (data series)
 		      for first-p = T then nil
 		      counting T into i
-		      do (destructuring-bind (px py) (data-point->graph-point x y)			     
-			   (if first-p
-			       (move-to px py)
-			       (line-to px py))
-			   ))
-		(stroke)))
-
-
-	    ))))))
+		      do (apply (if first-p #'move-to #'line-to)
+				(data-point->graph-point x y)))
+		(stroke)))))))))
 
 (defmethod translate-to-next-label ((chart line-chart) w h)
   "moves the cursor right to the next legend position"
@@ -188,3 +254,27 @@
   "starts the legends on the bottom row"
   (declare (ignore box-size label-spacing))
   (list (margin chart) (margin chart)))
+
+(defvar *current-chart* nil
+  "The currently active chart. Bound for the
+      duration of WITH-CHART.")
+
+(defmacro with-line-chart ((width height &key background) &rest body)
+  `(let ((*current-chart* (make-line-chart ,width ,height :background ,background)))
+    ,@body))
+
+(defun add-series (&rest args)
+  "adds a series to the *current-chart*.  args must match make-series signature"
+   (push (apply #'make-series args) (series *current-chart*)))
+
+(defun set-axis (axis &rest args)
+  "set the axis on the *current-chart*.  axis is either :x or :y, args must match make-axis"
+  (let ((ax (apply #'make-axis args)))
+    (cond
+      ((eq :x axis) (setf (x-axis *current-chart*) ax))
+      ((eq :y axis) (setf (y-axis *current-chart*) ax))
+      (t (error "axis must be :x or :y, not ~a" axis )))))
+
+(defun save-file (filename)
+  "saves the *current-chart* to the given file."
+  (render-chart *current-chart* filename))

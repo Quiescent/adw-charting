@@ -14,6 +14,13 @@
        :make-slices
        ;;line-chart related
        :series
+       :make-series
        :line-chart
+       :make-line-chart
        :axis
+       :make-axis
+       :with-line-chart
+       :add-series
+       :set-axis
+       :save-file
     ))
