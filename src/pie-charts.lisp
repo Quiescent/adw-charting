@@ -1,19 +1,15 @@
 (in-package :adw-charting)
 
 (defclass pie-chart (chart)
-  ((slices :accessor slices :initarg :slices)
-   (total :accessor total :initarg :total :initform nil))
+  ((total :accessor total :initarg :total :initform nil))
   (:default-initargs :width 400))
 
 (defmethod total ((chart pie-chart))
   "computes the pie-chart total based on the data, if no value is explicitly set"
   (aif (slot-value chart 'total)
        it
-       (loop for item in (slices chart)
+       (loop for item in (chart-elements chart)
 	     summing (value item))))
-
-(defmethod chart-elements ((chart pie-chart))
-  (slices chart))
 
 (defclass slice (chart-element)  
   ((value :accessor value :initarg :value))
@@ -47,7 +43,7 @@ make-items 10 10 10  makes 3 items with 10 as the value and label"
 	(- (height chart) box-size label-spacing)))
 
 (defmethod has-data-p ((chart pie-chart))
-  (slices chart))
+  (chart-elements chart))
 
 (defmethod draw-chart ((chart pie-chart))
   (let* ((radius (radius chart))
@@ -55,7 +51,7 @@ make-items 10 10 10  makes 3 items with 10 as the value and label"
 	 (height (height chart))
 	 (cy (- height (+ 5 radius)))
 	 (cx (+ 5 radius))
-	 (slices (slices chart)))
+	 (slices (chart-elements chart)))
     ;;draw the background circle
     (set-rgb-stroke 0 0 0)
     (set-rgb-fill 0 0 0)
@@ -85,8 +81,7 @@ make-items 10 10 10  makes 3 items with 10 as the value and label"
 			 (slice-size (+ angle segment))
 			 (endx (+ cx (* bigr (cos slice-size))))
 			 (endy (+ cy (* bigr (sin slice-size))))
-			 (obtuse-p (> segment half-pi)))
-		    (format *trace-output* "Making slice for ~a (~a), obtuse-p ~a ~%" (label item) (value item) obtuse-p)
+			 (obtuse-p (> segment half-pi)))		    
 		    ;;draw the sector as a huge wedge, the clipping path will take care of the spill-over
 		    (move-to cx cy)
 		    (line-to x y)
@@ -119,5 +114,14 @@ make-items 10 10 10  makes 3 items with 10 as the value and label"
 		    (setf x endx
 			  y endy
 			  angle slice-size)))))
-	  (setf (draw-legend-p chart) nil) ;;no data, supress the legend
+	  (setf (draw-legend-p chart) nil);;no data, supress the legend
 	  ))))
+
+(defmacro with-pie-chart ((width height &key background) &rest body)
+  `(let ((*current-chart* (make-instance 'pie-chart :width ,width :height ,height :background ,background)))
+    ,@body))
+
+(defun add-slice (label value &key color)
+  "add a slice to the pie"
+  (push (make-instance 'slice :color color :label label :value value)
+	(chart-elements *current-chart*)))

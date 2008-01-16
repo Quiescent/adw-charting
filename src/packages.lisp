@@ -13,6 +13,8 @@
        :slice       
        :pie-chart
        :make-slices
+       :with-pie-chart
+       :add-slice
        ;;line-chart related
        :series
        :make-series
