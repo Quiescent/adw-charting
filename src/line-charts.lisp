@@ -38,10 +38,7 @@
     axis))
 
 (defclass line-chart (chart)
-  ((series :accessor series
-	   :initarg :series
-	   :documentation "list of series objects" )
-   (x-axis :accessor x-axis
+  ((x-axis :accessor x-axis
 	   :initarg :x-axis
 	   :initform nil
 	   :documentation "and axis object to determine formatting for the X axis")
@@ -50,18 +47,15 @@
 	   :initform nil
 	   :documentation "and axis object to determine formatting for the Y axis")))
 
-(defun make-line-chart (width height &key series (y-axis nil) (x-axis nil) (background nil))
+(defun make-line-chart (width height &key chart-elements (y-axis nil) (x-axis nil) (background nil))
   "creates a line-chart object"
   (make-instance 'line-chart
 		 :width width
 		 :height height
-		 :series series
+		 :chart-elements chart-elements
 		 :y-axis y-axis
 		 :x-axis x-axis
 		 :background background))
-
-(defmethod chart-elements ((chart line-chart))
-  (series chart))
 
 (defun find-extremes (data)
   "takes a list of (x y) pairs, and returns the ((x-min y-min) (x-max y-max))"
@@ -74,7 +68,8 @@
 			      (list x-max y-max)))))
 
 (defmethod has-data-p ((chart line-chart))
-  (and (series chart) (find-if-not #'null (mapcar #'data (series chart)))))
+  (and (chart-elements chart)
+       (some #'data (chart-elements chart))))
 
 (defmethod draw-chart ((chart line-chart))
   (declare (ignore _))
@@ -138,7 +133,7 @@
 	  (find-extremes
 	   (mapcan #'(lambda (series)
 		       (find-extremes (data series)))
-		   (series chart)))
+		   (chart-elements chart)))
 	;;adjust our graph region to account for labels
 	(awhen (y-axis chart)
 	  (let* ((text-width (loop for y in (list min-y max-y)
@@ -240,15 +235,14 @@
 	    (set-stroke '(0 0 0))
 	    (stroke)
 	    (set-line-width 2)		;TODO: make this a property of the series
-	    (dolist (series (series chart))
-	      (with-graphics-state
-		(set-stroke series)
-		(loop for (x y) in (data series)
-		      for first-p = T then nil
-		      counting T into i
-		      do (apply (if first-p #'move-to #'line-to)
-				(data-point->graph-point x y)))
-		(stroke)))))))))
+	    (dolist (series (chart-elements chart))
+	      (set-stroke series)
+	      (loop for (x y) in (data series)
+		    for first-p = T then nil
+		    counting T into i
+		    do (apply (if first-p #'move-to #'line-to)
+			      (data-point->graph-point x y)))
+	      (stroke)))))))))
 
 (defmethod translate-to-next-label ((chart line-chart) w h)
   "moves the cursor right to the next legend position"
@@ -266,7 +260,7 @@
 
 (defun add-series (&rest args)
   "adds a series to the *current-chart*.  args must match make-series signature"
-   (push (apply #'make-series args) (series *current-chart*)))
+   (push (apply #'make-series args) (chart-elements *current-chart*)))
 
 (defun set-axis (axis &rest args)
   "set the axis on the *current-chart*.  axis is either :x or :y, args must match make-axis"
