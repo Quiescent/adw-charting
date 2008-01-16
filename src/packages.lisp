@@ -8,6 +8,7 @@
        ;;generic
        :total
        :render-chart
+       :save-file
        ;;pie-chart related
        :slice       
        :pie-chart
@@ -22,5 +23,4 @@
        :with-line-chart
        :add-series
        :set-axis
-       :save-file
     ))

@@ -260,10 +260,6 @@
   (declare (ignore box-size label-spacing))
   (list (margin chart) (margin chart)))
 
-(defvar *current-chart* nil
-  "The currently active chart. Bound for the
-      duration of WITH-CHART.")
-
 (defmacro with-line-chart ((width height &key background) &rest body)
   `(let ((*current-chart* (make-line-chart ,width ,height :background ,background)))
     ,@body))
@@ -279,7 +275,3 @@
       ((eq :x axis) (setf (x-axis *current-chart*) ax))
       ((eq :y axis) (setf (y-axis *current-chart*) ax))
       (t (error "axis must be :x or :y, not ~a" axis )))))
-
-(defun save-file (filename)
-  "saves the *current-chart* to the given file."
-  (render-chart *current-chart* filename))

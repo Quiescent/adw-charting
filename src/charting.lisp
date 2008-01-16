@@ -118,35 +118,46 @@ specified in the chart's label-size"
   (:method ((chart chart))
 	   (draw-legend-labels chart)))
 
-(defun draw-legend-labels (chart)
-  "handles drawing legend labels"
-  (with-graphics-state
-    (let* ((elems (chart-elements chart))
-	   (font (get-font *default-font-file*))
-	   (text-height (default-font-height chart))
-	   (box-size (* 3 text-height))
-	   (label-spacing (/ box-size 2)))
-      (set-font font (label-size chart)) ;set the font
-      (set-rgb-fill 0 0 0) ;text should be black
-      (apply #'translate (legend-start-coords chart box-size label-spacing))
-;      (translate-to-next-label chart 0 (+ box-size label-spacing))
-      (dolist (elem elems)
-	;;translate the origin to the next label
-	(with-graphics-state
-	  (set-fill (color elem))
-	  (rounded-rectangle 0 0 box-size box-size text-height text-height)
-	  (fill-and-stroke))
-	(draw-string (+ box-size label-spacing)
-		     text-height
-		     (label elem))
-	(translate-to-next-label chart
-				 (+ box-size label-spacing label-spacing
-				    (default-font-width chart (label elem)))
-				 (+ box-size label-spacing))))))
+(defgeneric legend-start-coords (chart box-size label-spacing)
+  (:documentation "specifies where legends should start drawing"))
 
 (defgeneric translate-to-next-label (chart w h)
   (:documentation "translates the active vecto canvas to the next place a label should go")
   (:method ((chart chart) w h)
 	   (declare (ignore chart w h))))
 
+(defun draw-legend-labels (chart)
+  "handles drawing legend labels"
+  (with-graphics-state
+    (with-font ()
+      (let* ((elems (chart-elements chart))
+	     (text-height (default-font-height chart))
+	     (box-size (* 3 text-height))
+	     (label-spacing (/ box-size 2)))
+	(set-font *font* (label-size chart)) ;set the font
+	(set-rgb-fill 0 0 0)		;text should be black
+	(apply #'translate (legend-start-coords chart box-size label-spacing))
+	(dolist (elem elems)
+	  ;;translate the origin to the next label
+	  (with-graphics-state
+	    (set-fill (color elem))
+	    (rounded-rectangle 0 0 box-size box-size text-height text-height)
+	    (fill-and-stroke))
+	  (draw-string (+ box-size label-spacing)
+		       text-height
+		       (label elem))
+	  (translate-to-next-label chart
+				   (+ box-size label-spacing label-spacing
+				      (default-font-width chart (label elem)))
+				   (+ box-size label-spacing)))))))
 
+
+
+
+(defvar *current-chart* nil
+  "The currently active chart. Bound for the
+      duration of WITH-CHART.")
+
+(defun save-file (filename)
+  "saves the *current-chart* to the given file."
+  (render-chart *current-chart* filename))
