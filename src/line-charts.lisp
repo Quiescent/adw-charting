@@ -78,6 +78,7 @@
 
 (defmethod draw-chart ((chart line-chart))
   (declare (ignore _))
+  (with-font ()
   (let* ((width (width chart))
 	 (height (height chart))
 	 (graph-margin (margin chart))
@@ -114,8 +115,8 @@
 
     ;;if we're going to be drawing any axes, set the font and color
     (when (or (y-axis chart) (x-axis chart))      
-      (set-font (get-font *default-font-file*) (label-size chart))
-      (set-rgb-fill 0 0 0))
+      (set-font *font* (label-size chart))
+      (set-rgb-fill 0 0 0)
 
     ;;draw the y-label
     (awhen (y-axis chart)

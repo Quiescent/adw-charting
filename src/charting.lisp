@@ -14,6 +14,8 @@
 
 (defvar *color-stack* +default-colors+)
 
+(defvar *current-font* nil "a font object")
+
 (defclass chart ()
   ((width :accessor width
 	  :initarg :width
@@ -34,21 +36,35 @@
 		  :initform T)
    (background :accessor background
 	       :initarg :background
-	       :initform '(1 1 1))))
+	       :initform '(1 1 1))
+   (chart-elements :accessor chart-elements
+		   :initarg :chart-elements
+		   :initform nil)))
+
+
+(defmethod default-font-bounding-box ((chart chart) text)
+  "gets the bounding box for the given text on the given chart."
+  (with-font ()
+    (string-bounding-box text
+			 (label-size chart)
+			 *font*)))
 
 (defmethod default-font-height ((chart chart))
-  "gets the pixel height of the default font, at the size specified in the chart's label-size"
-  (aref (string-bounding-box "A"
-			     (label-size chart)
-			     (get-font *default-font-file*))
-	3))
+  "gets the pixel height of the default font, at
+the size specified in the chart's label-size"
+  (aref (default-font-bounding-box chart "A") 3))
 
 (defmethod default-font-width ((chart chart) text)
-  "gets the pixel width of the default font, as the size specified in the chart's label-size"
-  (aref (string-bounding-box text
-			     (label-size chart)
-			     (get-font *default-font-file*))
-	2))
+  "gets the pixel width of the default font, as the size
+specified in the chart's label-size"
+    (aref (default-font-bounding-box chart text) 2))
+
+(defvar *font* nil "a font object")
+
+(defmacro with-font ((&optional (font-file *default-font-file*) ) &rest body)
+  "ensures *font* is a valid font loader."
+  `(let ((*font* (or *font* (get-font ,font-file))))
+    ,@body))
 
 (defgeneric render-chart (chart filename)
   (:documentation "renders the chart to the given file")
