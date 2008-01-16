@@ -1,27 +1,20 @@
-(defpackage #:adw-charting-tests
-    (:use #:cl #:adw-charting #:lisp-unit))
+(in-package :adw-charting-tests)
 
-(in-package #:adw-charting-tests)
-
-(define-test pie-chart-total
-  (assert-equal 10 (total (make-instance 'pie-chart :total 10))))
-
-(define-test pie-chart-calculated-total
-  "tests summing the pie-chart total from the data items"
-  (assert-equal 45
-		(total (make-instance 'pie-chart :slices (make-slices '(10 15 20))))))
-
-
-(define-test pie-chart-sample
+(defun pie-chart-sample ()
   "draws a simple pie chart, rending to pie-chart-sample.png"
-  (assert-true (render-chart
-		(make-instance 'pie-chart :slices
+  (render-chart
+		(make-instance 'pie-chart :chart-elements
 			       (make-slices '((5.0d0 "POP3-First")
 					      (2.0d0 "POP3-Additional"))))
-		"pie-chart-sample.png")))
+		"pie-chart-sample.png"))
 
-(define-test line-chart-sample
-  "draws a simple line chart"
+(defun pie-chart-imperative ()
+  (with-pie-chart (400 400)
+    (add-slice "A" 5.0d0)
+    (add-slice "B" 2.0d0)
+    (save-file "pie-chart-sample.png")))
+
+(defun line-chart-sample ()
   (let* ((seriesA (make-instance 'series
 				 :label "SeriesA"
 					;data expressed as a list (x y) pairs
@@ -32,8 +25,8 @@
 	 (chart (make-instance 'line-chart
 			       :width 400
 			       :background '(.7 .7 .7)
-			       :series (list seriesA seriesB))))
-    (assert-true (render-chart chart "line-chart-sample.png"))))
+			       :chart-elements (list seriesA seriesB))))
+    (render-chart chart "line-chart-sample.png")))
 
 (defun months-from-now->mm/yy (months-ago)
   "converts months-ago (-1 for 1 month ago) to a string of mm/yy"
@@ -48,11 +41,12 @@
 	    (subseq (princ-to-string (nth 5 date))
 		    2))))
 
-(defun line-chart-with-axis () 
+(defun line-chart-with-axis ()
+  "this uses a make-foo style, which is trying ease the syntax burden of CLOS."
   (render-chart
    (make-line-chart 400 300
 		    :background '(.7 .7 .7)
-		    :series (list (make-series "SeriesA"
+		    :chart-elements (list (make-series "SeriesA"
 					       '((-1 -2) (0 4) (1 5) (4 6) (5 -3)))
 				  (make-series "SeriesB"
 					       '((-1 4) (0 -2) (1 6) (5 -2) (6 5))
@@ -79,8 +73,3 @@
     (save-file "line-chart-with-axis-labels.png")))
 
 
-(define-test line-chart-with-axis-labels
-  (assert-true (line-chart-with-axis)))
-
-(define-test line-chart-with-axis-labels-imperative
-  (assert-true (line-chart-with-axis-imperative)))
