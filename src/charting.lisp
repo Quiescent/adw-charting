@@ -7,8 +7,10 @@
 				 (0 1 0)
 				 (0 0 1)))
 
-;;might be able to: you can merge-pathnames with (component-pathname (find-system :my-system)) probably
-(defvar *default-font-file* "/usr/share/fonts/truetype/freefont/FreeSans.ttf")
+(defvar *default-font-file* (merge-pathnames
+			     (asdf:component-pathname
+			      (asdf:find-system :adw-charting))
+			     "FreeSans.ttf"))
 
 (defvar *color-stack* +default-colors+)
 
