@@ -85,46 +85,35 @@
 	 (graph-y (- height graph-height graph-margin))
 	 (y-axis-x nil)
 	 (x-axis-y nil))
-    
-
-    
-   
-
-    (awhen (x-axis chart)
-      (let ((offset (* text-height
-		       (if (label it)
-			   3
-			   2))))	
-	(incf graph-y offset)
-	(decf graph-height offset)
-	(setf x-axis-y (- graph-y graph-margin text-height))))
-
-    ;;set the chart background as the avg between the background color and 1
-    (set-fill (mapcar #'(lambda (c)
-			  (/ (+ 1 c) 2))
-		      (background chart)))
-
-    (set-rgb-stroke 0 0 0)    
-    (rectangle (1- graph-x) (1- graph-y) (1+ graph-width) (1+ graph-height))
-    (fill-and-stroke)
 
     ;;if we're going to be drawing any axes, set the font and color
     (when (or (y-axis chart) (x-axis chart))      
       (set-font *font* (label-size chart))
       (set-rgb-fill 0 0 0)
 
-    ;;draw the y-label
-    (awhen (y-axis chart)
-      (with-graphics-state
-	;;move to the site of the y axis label
-	(translate (+ graph-margin text-height) (+ graph-y (/ graph-height 2)))
-	;;rotate the canvas so we're sideways	
-	(rotate (/ pi 2))
-	(draw-centered-string 0 0 (label it))))
+      ;;move the graph region about
+      (awhen (x-axis chart)
+	(let ((offset (* text-height
+			 (if (label it)
+			     3
+			     2))))	
+	  (incf graph-y offset)
+	  (decf graph-height offset)
+	  (setf x-axis-y (- graph-y graph-margin text-height))))
 
-    ;;draw the x-label
-    (awhen (and (x-axis chart) (label (x-axis chart)))
-      (draw-centered-string (+ graph-x (/ graph-width 2)) (+ (/ graph-margin 2) legend-space) it))
+      ;;draw the y-label
+      (awhen (and (y-axis chart) (label (y-axis chart)))
+	(with-graphics-state
+	  ;;move to the site of the y axis label
+	  (translate (+ graph-margin text-height) (+ graph-y (/ graph-height 2)))
+	  ;;rotate the canvas so we're sideways	
+	  (rotate (/ pi 2))
+	  (draw-centered-string 0 0 it)))
+
+      ;;draw the x-label
+      (awhen (and (x-axis chart) (label (x-axis chart)))
+	(draw-centered-string (+ graph-x (/ graph-width 2)) (+ (/ graph-margin 2) legend-space) it)))
+
 
     (when (has-data-p chart)
       ;;figure out the right scaling factors so we fill the graph    
@@ -137,7 +126,8 @@
 	;;adjust our graph region to account for labels
 	(awhen (y-axis chart)
 	  (let* ((text-width (loop for y in (list min-y max-y)
-				   maximizing (default-font-width chart y) into longest
+				   maximizing (default-font-width chart
+						  (funcall (label-formatter it) y)) into longest
 				   finally (return longest)))
 		 (offset (+ text-width
 			    (* text-height (if (label it)
@@ -149,12 +139,21 @@
 	    (decf graph-width offset)
 	    (setf y-axis-x (- graph-x graph-margin text-width))))
 
+	;;set the chart background as the avg between the background color and 1
+	(set-fill (mapcar #'(lambda (c)
+			      (/ (+ 1 c) 2))
+			  (background chart)))
+	(set-rgb-stroke 0 0 0)    
+	(rectangle (1- graph-x) (1- graph-y) (1+ graph-width) (1+ graph-height))
+	(fill-and-stroke)
 	
 	(let* ((gx graph-x)
 	       (gy graph-y)
 	       (scale-x (/ graph-width (- max-x min-x)))
 	       (scale-y (/ graph-height (* 1.1 (- max-y min-y)))))
-					;adjust the origins if we need to
+
+
+	  ;;adjust the origins if we need to
 	  (when (> 0 min-y)
 	    (incf gy (abs (* scale-y min-y))))
 	  (when (> 0 min-x)
@@ -169,25 +168,24 @@
 		   (list (/ (- x gx) scale-x)
 			 (/ (- y gy) scale-y))))
 
-
-
-
 	    (when (or (y-axis chart) (x-axis chart))
+	      ;;set the drawing for grid-lines
+	      (set-line-width 1)
+	      (set-stroke (background chart))
+	      (set-dash-pattern #(10 2) 0)
+	      
 	      (macrolet ((draw-gridline ((axis) &body gridline)
 			   `(when (draw-gridlines-p ,axis)
-			     (with-graphics-state
-			       (set-line-width 1)
-			       (set-stroke (background chart))
-			       (set-dash-pattern #(10 2) 0)
-			       ,@gridline
-			       (stroke)))
-			   ))
+			     ,@gridline
+			     (stroke))))
+		
 		(destructuring-bind (gx gy) (data-point->graph-point 0 0)
 		  ;;draw y labels at regular intervals
 		  (awhen (y-axis chart)
 		    (flet ((draw-label (y)
 			     (destructuring-bind (_ data-y) (graph-point->data-point 0 y)
-			       (draw-string y-axis-x y (funcall (label-formatter it) data-y))
+			       (draw-string y-axis-x (- y (/ text-height 2))
+					    (funcall (label-formatter it) data-y))
 			       (draw-gridline (it)
 					      (move-to graph-x y)
 					      (line-to (+ graph-x graph-width) y))))
@@ -206,7 +204,8 @@
 		  (awhen (x-axis chart)
 		    (flet ((draw-label (x)
 			     (destructuring-bind (data-x _) (graph-point->data-point x 0)
-			       (let ((label (funcall (label-formatter it) data-x)))
+			       (let ((label (funcall (label-formatter it)
+						     data-x)))
 				 (draw-centered-string x x-axis-y label)
 				 (draw-gridline (it)
 						(move-to x graph-y)
@@ -228,12 +227,11 @@
 
 	    
 					;draw the 0 line
-
 	    (apply #'move-to (data-point->graph-point min-x 0))
 	    (apply #'line-to (data-point->graph-point max-x 0))
-
 	    (set-stroke '(0 0 0))
 	    (stroke)
+	    
 	    (set-line-width 2)		;TODO: make this a property of the series
 	    (dolist (series (chart-elements chart))
 	      (set-stroke series)
