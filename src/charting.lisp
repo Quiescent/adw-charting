@@ -13,7 +13,6 @@
 			     "FreeSans.ttf"))
 
 (defvar *color-stack* +default-colors+)
-
 (defvar *current-font* nil "a font object")
 
 (defclass chart ()
@@ -61,21 +60,24 @@ specified in the chart's label-size"
 
 (defvar *font* nil "a font object")
 
-(defmacro with-font ((&optional (font-file *default-font-file*) ) &rest body)
+(defmacro with-font ((&optional font-file) &rest body)
   "ensures *font* is a valid font loader."
-  `(let ((*font* (or *font* (get-font ,font-file))))
+  `(let ((*font* (or *font* (get-font (or ,font-file *default-font-file*)))))
     ,@body))
 
 (defgeneric render-chart (chart filename)
   (:documentation "renders the chart to the given file")
   (:method ((chart chart) filename)
 	   (with-canvas (:width (width chart) :height (height chart))
+	     
 	     (set-fill chart) 
 	     (clear-canvas) ;;fills in the background
-	     (setq *color-stack* +default-colors+) ;ensure we have colors to auto-assign
-	     (draw-chart chart)
-	     (when (draw-legend-p chart)
-	       (draw-legend chart))
+	     
+	     ;ensure we have colors to auto-assign
+	     (let ((*color-stack* +default-colors+))
+	       (draw-chart chart)
+	       (when (draw-legend-p chart)
+		 (draw-legend chart)))
 	     (save-png filename))))
 
 (defgeneric draw-chart (chart)
@@ -122,7 +124,8 @@ specified in the chart's label-size"
   (:documentation "specifies where legends should start drawing"))
 
 (defgeneric translate-to-next-label (chart w h)
-  (:documentation "translates the active vecto canvas to the next place a label should go")
+  (:documentation "translates the active vecto canvas to the next
+place a label should go")
   (:method ((chart chart) w h)
 	   (declare (ignore chart w h))))
 
@@ -150,9 +153,6 @@ specified in the chart's label-size"
 				   (+ box-size label-spacing label-spacing
 				      (default-font-width chart (label elem)))
 				   (+ box-size label-spacing)))))))
-
-
-
 
 (defvar *current-chart* nil
   "The currently active chart. Bound for the
