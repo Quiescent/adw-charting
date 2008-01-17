@@ -15,21 +15,6 @@
   ((value :accessor value :initarg :value))
   (:documentation "this is a slice of a pie chart"))
 
-(defun make-slices (items)
-  "makes slices from the list provided.  Accepts several formats:
-make-items 10 10 10  makes 3 items with 10 as the value and label"
-  (mapcar
-   #'(lambda (item)
-       (if (listp item)
-	   (destructuring-bind (value &optional label color) item
-	     (make-instance 'slice
-			    :value value
-			    :label label
-			    :color color))
-	   (make-instance 'slice :value item
-			  :label (princ-to-string item))))
-   items))
-
 (defmethod radius ((chart pie-chart))
   (truncate (/ (- (height chart) 10)
 	       2)))
@@ -117,8 +102,11 @@ make-items 10 10 10  makes 3 items with 10 as the value and label"
 	  (setf (draw-legend-p chart) nil);;no data, supress the legend
 	  ))))
 
-(defmacro with-pie-chart ((width height &key background) &rest body)
-  `(let ((*current-chart* (make-instance 'pie-chart :width ,width :height ,height :background ,background)))
+(defmacro with-pie-chart ((width height &key (background ''(1 1 1))) &rest body)
+  `(let ((*current-chart* (make-instance 'pie-chart
+					 :width ,width
+					 :height ,height
+					 :background ,background)))
     ,@body))
 
 (defun add-slice (label value &key color)
