@@ -206,8 +206,8 @@ the Y axis")))
 	
 	  (let* ((gx graph-x)
 		 (gy graph-y)
-		 (scale-x (/ graph-width (- max-x min-x)))
-		 (scale-y (/ graph-height (* 1.1 (- max-y min-y)))))
+		 (scale-x (/ graph-width (max 1 (- max-x min-x))))
+		 (scale-y (/ graph-height (max 1 (* 1.1 (- max-y min-y))))))
 
 	    ;;adjust the origins if we need to
 	    (when (minusp min-y)
