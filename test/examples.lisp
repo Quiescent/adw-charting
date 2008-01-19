@@ -4,7 +4,7 @@
 		(asdf:find-system :adw-charting)))
 
 (defun minimal-pie-chart ()  
-  (with-pie-chart (400 400)
+  (with-pie-chart (300 200)
     (add-slice "A" 5.0d0)
     (add-slice "B" 2.0d0)
     (save-file (merge-pathnames *root* "minimal-pie-chart.png"))))
@@ -22,10 +22,12 @@
     (add-series "C"
 		'((-1 0) (0 3) (1 1) (2 5) (4 -6))
 		:color '(.3 .7 .9))
-    (set-axis :y "widgets" :label-formatter "~D")
+    (set-axis :y "widgets" :label-formatter "~,2F")
     (set-axis :x nil
+	      :draw-gridlines-p nil
 	      :label-formatter #'(lambda (v)
-				   (format nil "#~a" v)))
+				   ;;could do something more interesting here
+				   (format nil "#~a" (floor v))))
     (save-file (merge-pathnames *root* "customized-line-chart.png"))))
 
 
