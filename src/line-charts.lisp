@@ -65,7 +65,7 @@ the Y axis")))
 		
     (destructuring-bind (gx gy) (dp->gp 0 0)
       ;;draw y labels at regular intervals
-      (awhen (y-axis chart)
+      (when-let (it (y-axis chart))
 	(flet ((draw-label (y)
 		 (destructuring-bind (_ data-y) (gp->dp 0 y)
 		   (declare (ignore _))
@@ -86,7 +86,7 @@ the Y axis")))
 		  when (below-top-p uy) do (draw-label uy)
 		  when (above-bottom-p dy) do (draw-label dy)))))
 
-      (awhen (x-axis chart)
+      (when-let (it (x-axis chart))
 	(flet ((draw-label (x)
 		 (destructuring-bind (data-x _) (gp->dp x 0)
 		   (declare (ignore _))
@@ -150,7 +150,7 @@ the Y axis")))
 	(set-rgb-fill 0 0 0)
 
 	;;move the graph region about
-	(awhen (x-axis chart)
+	(when-let (it (x-axis chart))
 	  (let ((offset (* text-height
 			   (if (label it)
 			       3
@@ -159,13 +159,14 @@ the Y axis")))
 	    (decf graph-height offset)
 	    (setf x-axis-y (- graph-y graph-margin text-height))
 	    ;;draw the x-label
-	    (awhen (label it)
+	    (when-let (it (label it))
 	      (draw-centered-string (+ graph-x (/ graph-width 2))
 				    (+ (/ graph-margin 2) legend-space)
 				    it))))
 
 	;;draw the y-label
-	(awhen (and (y-axis chart) (label (y-axis chart)))
+	(when-let (it (and (y-axis chart) 
+			   (label (y-axis chart))))
 	  (with-graphics-state
 	    ;;move to the site of the y axis label
 	    (translate (+ graph-margin text-height)
@@ -186,7 +187,7 @@ the Y axis")))
 			 (find-extremes (data series)))
 		     (chart-elements chart)))
 	  ;;adjust our graph region to account for labels
-	  (awhen (y-axis chart)
+	  (when-let (it (y-axis chart))
 	    (let* ((text-width (loop for y in (list min-y max-y)
 				     maximizing (default-font-width chart
 						    (funcall (label-formatter it)

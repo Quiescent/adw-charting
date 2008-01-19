@@ -6,10 +6,12 @@
 
 (defmethod total ((chart pie-chart))
   "computes the pie-chart total based on the data, if no value is explicitly set"
-  (aif (slot-value chart 'total)
-       it
-       (loop for item in (chart-elements chart)
-	     summing (value item))))
+  (if-let (total (slot-value chart 'total))
+       total
+       (setf (total chart)
+	     (loop for item in 
+		   (chart-elements chart)
+	     summing (value item)))))
 
 (defclass slice (chart-element)  
   ((value :accessor value :initarg :value))

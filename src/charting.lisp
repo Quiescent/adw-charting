@@ -91,8 +91,8 @@ specified in the chart's label-size"
   (:documentation "this is a super-class for various chart elements"))
 
 (defmethod color ((item chart-element))
-  (aif (slot-value item 'color)
-       it
+  (if-let (color (slot-value item 'color))
+       color
        (setf (color item) (pop *color-stack*))))
 
 (defgeneric set-fill (obj)
@@ -102,8 +102,8 @@ specified in the chart's label-size"
   (apply #'set-rgb-fill lst))
 
 (defmethod set-fill ((chart chart))
-  (awhen (background chart)
-    (set-fill it)))
+  (when-let (bg (background chart))
+    (set-fill bg)))
 
 (defmethod set-fill ((elem chart-element))
   (set-fill (color elem)))
