@@ -8,9 +8,9 @@
 				 (0 0 1)))
 
 (defvar *default-font-file* (merge-pathnames
+			     "FreeSans.ttf"
 			     (asdf:component-pathname
-			      (asdf:find-system :adw-charting))
-			     "FreeSans.ttf"))
+			      (asdf:find-system :adw-charting))))
 
 (defvar *color-stack* +default-colors+)
 (defvar *current-font* nil "a font object")
