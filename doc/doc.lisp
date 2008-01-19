@@ -38,11 +38,8 @@ results to a PNG file. The API was designed to eliminate as many decisions as po
 produce a reasonable result with minimal fuss.  It tries to scale various elements of the chart to
 fit nicely, but sometimes this goes awry." )
    (:p "ADW-Charting depends on the following libraries:"
-     (:ul
-	 (loop for (href title) in '(("http://www.xach.com/lisp/vecto/" "Vecto")
-				     ("http://common-lisp.net/project/bese/arnesi.html" "arnesi"))
-	       do
-	       (htm (:li (:a :href href (str title)))))))
+       (:ul
+	(:li (vecto-link))))
 
    (:p "The easiest way to install ADW-Charting and all its dependencies is "
      (:a :href "http://www.cliki.net/asdf-install" "ASDF-Install"))
@@ -80,8 +77,6 @@ regarding ADW-Charting, please email "
    (:p "Thanks to:")
    (:ul (:li "Zach Beane for creating "
 	  (vecto-link))
-     (:li "Marco Baringer for creating "
-       (:a :href "http://common-lisp.net/project/bese/arnesi.html" "arnesi"))
      (:li "Peter Seibel for his excellent book, "
        (:a :href "http://gigamonkeys.com/book/" "Practical Common Lisp"))
      (:li "Edi Weitz and Zach Beane for providing good examples on how to write and document lisp libraries")
@@ -117,7 +112,6 @@ regarding ADW-Charting, please email "
 
 (defhtmlmethod toc-entry ((s code))
   (:tt (str (title s))))
-
 
 (defhtmlfun toc (sections &optional (depth 0))
   (flet ((fn ()
