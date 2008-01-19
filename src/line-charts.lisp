@@ -1,7 +1,5 @@
 (in-package :adw-charting)
 
-(deflogger line-chart-log nil :appender (make-slime-repl-log-appender))
-
 (defclass series (chart-element)
   ((data :accessor data
 	 :initarg :data

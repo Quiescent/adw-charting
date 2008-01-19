@@ -11,7 +11,7 @@
   :author "Ryan Davis <ryan@acceleration.net>"
   :licence "LGPL (or talk to me)"
   :version "0.2"
-  :depends-on (#:vecto #:arnesi)
+  :depends-on (#:vecto)
   :components ((:module :src
 			:components ((:file "packages")
 				     (:file "utils" :depends-on ("packages"))

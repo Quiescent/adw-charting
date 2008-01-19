@@ -2,8 +2,7 @@
 (defpackage :net.acceleration.charting
     (:documentation "Charting library to make pretty graphs")
     (:nicknames #:adw-charting)
-    (:use #:cl #:vecto #:arnesi)
-    (:shadow :value)
+    (:use #:cl #:vecto)
     (:export
        ;;generic
        :save-file
