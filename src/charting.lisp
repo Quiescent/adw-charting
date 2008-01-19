@@ -14,6 +14,10 @@
 
 (defvar *color-stack* +default-colors+)
 (defvar *current-font* nil "a font object")
+(defvar *font* nil "a font object")
+(defvar *current-chart* nil
+  "The currently active chart. Bound for the
+      duration of WITH-CHART.")
 
 (defclass chart ()
   ((width :accessor width
@@ -40,7 +44,6 @@
 		   :initarg :chart-elements
 		   :initform nil)))
 
-
 (defmethod default-font-bounding-box ((chart chart) text)
   "gets the bounding box for the given text on the given chart."
   (with-font ()
@@ -58,7 +61,6 @@ the size specified in the chart's label-size"
 specified in the chart's label-size"
     (aref (default-font-bounding-box chart text) 2))
 
-(defvar *font* nil "a font object")
 
 (defmacro with-font ((&optional font-file) &rest body)
   "ensures *font* is a valid font loader."
@@ -154,9 +156,6 @@ place a label should go")
 				      (default-font-width chart (label elem)))
 				   (+ box-size label-spacing)))))))
 
-(defvar *current-chart* nil
-  "The currently active chart. Bound for the
-      duration of WITH-CHART.")
 
 (defun save-file (filename)
   "saves the *current-chart* to the given file."
