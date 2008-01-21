@@ -7,6 +7,12 @@
 				 (0 1 0)
 				 (0 0 1)))
 
+(eval-when (:compile-toplevel :load-toplevel :execute)
+  (defmacro with-font ((&optional font-file) &rest body)
+    "ensures *font* is a valid font loader."
+    `(let ((*font* (or *font* (get-font (or ,font-file *default-font-file*)))))
+      ,@body)))
+
 (defvar *default-font-file* (merge-pathnames
 			     "FreeSans.ttf"
 			     (asdf:component-pathname
@@ -62,10 +68,7 @@ specified in the chart's label-size"
     (aref (default-font-bounding-box chart text) 2))
 
 
-(defmacro with-font ((&optional font-file) &rest body)
-  "ensures *font* is a valid font loader."
-  `(let ((*font* (or *font* (get-font (or ,font-file *default-font-file*)))))
-    ,@body))
+
 
 (defgeneric render-chart (chart filename)
   (:documentation "renders the chart to the given file")
