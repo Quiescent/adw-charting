@@ -48,11 +48,22 @@ fit nicely, but sometimes this goes awry." )
      (vecto-link)
      "'s interface: you
 create charts by setting up a chart context and adding or setting information on that chart.")
-   (:p "ADW-Charting uses RGB for colors, transparency is not yet supported.  The bounds on a
-pie chart are a bit goofy, as the size of the pie is currently only determined by the height of
-the chart.  This means a square image will cut off the legend.  Another issue is with printing
-axis labels.  There's some code to try to keep those reasonably spaces, but sometimes the
-labels start overlapping.")
+   (:p "There are many known limitations at this point. We've got some plans on how to solve
+some of these, and other aren't priorities for me, and might stay around for ahwile.")
+   (:ul 
+    (:li "All colors are RGB, represented as a list of 3 numbers between 0 and 1, eg:"
+	 (:code "'(1 .5 .3)"))
+    (:li "The bounds on a pie chart are a bit goofy, as the radius of the pie is currently 
+only determined by the height of the chart.  This means a square image will cut off the 
+legend.")
+    (:li "Another issue is with printing axis labels.  There's some code to try to keep 
+those reasonably spaces, but sometimes the labels start overlapping.  Making the graph
+in two passes should let us calculate everything before starting to draw on the canvas,
+preventing this issue.")
+    (:li "The font used for all the text is included in the distribution, some random .ttf file
+pulled from the debian freefont library.  You can specify the font file using the 
+*default-font-file* unexported variable.  I'm using a with-font macro internally that
+could solve this one."))
    (:p "Related libraries"
      (:ul
 	 (:li (:a :href "http://common-lisp.net/project/cl-plplot/" "cl-plplot"))))))
@@ -272,9 +283,6 @@ dimensions as the target for chart commands, with the specified background."))
 (defhtmlfun add-slice ()
   (:blockquote "Adds a slice to the chart, with an optional color.  A color will
 be automatically assigned if none is specified."))
-
-
-
 
 (defun adw-charting-doc ()
   (let ((title "ADW-Charting - simple chart drawing with Common Lisp")
