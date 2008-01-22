@@ -141,7 +141,7 @@ place a label should go")
 	(set-font *font* (label-size chart)) ;set the font
 	(set-rgb-fill 0 0 0)		;text should be black
 	(apply #'translate (legend-start-coords chart box-size label-spacing))
-	(dolist (elem elems)
+	(dolist (elem (reverse elems))
 	  ;;translate the origin to the next label
 	  (with-graphics-state
 	    (set-fill (color elem))
