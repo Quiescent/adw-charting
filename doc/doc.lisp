@@ -277,7 +277,7 @@ dimensions as the target for chart commands, with the specified background."))
 	      :draw-gridlines-p nil
 	      :label-formatter #'(lambda (v)
                                    ;;could do something more interesting here
-				   (format nil \"#~a\" (floor v))))
+				   (format nil \"~,1F\" (expt 2 v))))
     (save-file \"customized-line-chart.png\"))"))))
 
 (defhtmlfun add-slice ()

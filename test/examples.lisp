@@ -27,7 +27,7 @@
 	      :draw-gridlines-p nil
 	      :label-formatter #'(lambda (v)
 				   ;;could do something more interesting here
-				   (format nil "#~a" (floor v))))
+				   (format nil "~,1F" (expt 2 v))))
     (save-file (merge-pathnames *root* "customized-line-chart.png"))))
 
 
