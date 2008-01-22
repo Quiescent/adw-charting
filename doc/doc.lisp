@@ -201,11 +201,11 @@ regarding ADW-Charting, please email "
 		      (make-section "Customized Line Chart" #'customized-line))
 	(make-section "Dictionary" #'dictionary
 		      (make-code "with-pie-chart" #'with-chart "Macro"
-				 '((width height &key (background '(1 1 1))) &rest body))
+				 '((width height &key (background '(1 1 1))) &body body))
 		      (make-code "add-slice" #'add-slice "Function"
 				 '(label value &key color))
 		      (make-code "with-line-chart" #'with-chart "Macro"
-				 '((width height &key (background '(1 1 1))) &rest body))
+				 '((width height &key (background '(1 1 1))) &body body))
 		      (make-code "add-series" #'add-series "Function"
 				 '(label data &key (color nil)))
 		      (make-code "set-axis" #'set-axis "Function"

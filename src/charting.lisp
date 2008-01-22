@@ -8,7 +8,7 @@
 				 (0 0 1)))
 
 (eval-when (:compile-toplevel :load-toplevel :execute)
-  (defmacro with-font ((&optional font-file) &rest body)
+  (defmacro with-font ((&optional font-file) &body body)
     "ensures *font* is a valid font loader."
     `(let ((*font* (or *font* (get-font (or ,font-file *default-font-file*)))))
       ,@body)))

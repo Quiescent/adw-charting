@@ -104,7 +104,7 @@
 	  (setf (draw-legend-p chart) nil);;no data, supress the legend
 	  ))))
 
-(defmacro with-pie-chart ((width height &key (background ''(1 1 1))) &rest body)
+(defmacro with-pie-chart ((width height &key (background ''(1 1 1))) &body body)
   `(let ((*current-chart* (make-instance 'pie-chart
 					 :width ,width
 					 :height ,height

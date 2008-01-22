@@ -262,7 +262,7 @@ the Y axis")))
   (declare (ignore box-size label-spacing))
   (list (margin chart) (margin chart)))
 
-(defmacro with-line-chart ((width height &key (background ''(1 1 1))) &rest body)
+(defmacro with-line-chart ((width height &key (background ''(1 1 1))) &body body)
   "Evaluates body with a chart established with the specified
 dimensions as the target for chart commands, with the specified background."
   `(let ((*current-chart*  (make-instance 'line-chart
