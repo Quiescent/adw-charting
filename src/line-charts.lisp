@@ -56,60 +56,60 @@ the Y axis")))
 	   (funcall dp->gp-fn x y))
 	 (gp->dp (x y)
 	   (funcall gp->dp-fn x y)))
-  (macrolet ((draw-gridline ((axis) &body gridline)
-	       `(when (draw-gridlines-p ,axis)
-		 ,@gridline
-		 (stroke))))
+    (macrolet ((draw-gridline ((axis) &body gridline)
+		 `(when (draw-gridlines-p ,axis)
+		   ,@gridline
+		   (stroke))))
 		
-    (destructuring-bind (gx gy) (dp->gp 0 0)
-      ;;draw y labels at regular intervals
-      (when-let (it (y-axis chart))
-	(flet ((draw-label (y)
-		 (destructuring-bind (_ data-y) (gp->dp 0 y)
-		   (declare (ignore _))
-		   (draw-string y-axis-x (- y (/ text-height 2))
-				(funcall (label-formatter it) data-y))
-		   (draw-gridline (it)
-				  (move-to graph-x y)
-				  (line-to (+ graph-x graph-width) y))))
-	       (below-top-p (y)
-		 (< y (+ graph-height graph-y)))
-	       (above-bottom-p (y)
-		 (> y graph-y)))
-	  (let ((spacing (* text-height 3)))
-	    ;;start at 0, go up until we can't draw any more
-	    (loop for uy = gy then (+ uy spacing)
-		  for dy = (- gy spacing) then (- dy spacing)
-		  while (or (below-top-p uy) (above-bottom-p dy))
-		  when (below-top-p uy) do (draw-label uy)
-		  when (above-bottom-p dy) do (draw-label dy)))))
-
-      (when-let (it (x-axis chart))
-	(flet ((draw-label (x)
-		 (destructuring-bind (data-x _) (gp->dp x 0)
-		   (declare (ignore _))
-		   (let ((label (funcall (label-formatter it)
-					 data-x)))
-		     (draw-centered-string x x-axis-y label)
+      (destructuring-bind (gx gy) (dp->gp 0 0)
+	;;draw y labels at regular intervals
+	(when-let (it (y-axis chart))
+	  (flet ((draw-label (y)
+		   (destructuring-bind (_ data-y) (gp->dp 0 y)
+		     (declare (ignore _))
+		     (draw-string y-axis-x (- y (/ text-height 2))
+				  (funcall (label-formatter it) data-y))
 		     (draw-gridline (it)
-				    (move-to x graph-y)
-				    (line-to x
-					     (+ graph-y graph-height)))
-		     label)))
-	       (after-left-p (x)
-		 (> x graph-x))
-	       (before-right-p (x)
-		 (< x (+ graph-width graph-x))))
-	  ;;start at the 0, go left / right while we can
-	  (let ((spacing (* 2 (default-font-width
-				  chart
-				  (draw-label gx)))))
-	    (loop for rx = (+ gx spacing) then (+ rx spacing)
-		  for lx = (- gx spacing) then (- lx spacing)
-		  while (or (before-right-p rx)
-			    (after-left-p lx))
-		  when (before-right-p rx) do (draw-label rx)
-		  when (after-left-p lx) do (draw-label lx)))))))))
+				    (move-to graph-x y)
+				    (line-to (+ graph-x graph-width) y))))
+		 (below-top-p (y)
+		   (< y (+ graph-height graph-y)))
+		 (above-bottom-p (y)
+		   (> y graph-y)))
+	    (let ((spacing (* text-height 3)))
+	      ;;start at 0, go up until we can't draw any more
+	      (loop for uy = gy then (+ uy spacing)
+		    for dy = (- gy spacing) then (- dy spacing)
+		    while (or (below-top-p uy) (above-bottom-p dy))
+		    when (below-top-p uy) do (draw-label uy)
+		    when (above-bottom-p dy) do (draw-label dy)))))
+
+	(when-let (it (x-axis chart))
+	  (flet ((draw-label (x)
+		   (destructuring-bind (data-x _) (gp->dp x 0)
+		     (declare (ignore _))
+		     (let ((label (funcall (label-formatter it)
+					   data-x)))
+		       (draw-centered-string x x-axis-y label)
+		       (draw-gridline (it)
+				      (move-to x graph-y)
+				      (line-to x
+					       (+ graph-y graph-height)))
+		       label)))
+		 (after-left-p (x)
+		   (> x graph-x))
+		 (before-right-p (x)
+		   (< x (+ graph-width graph-x))))
+	    ;;start at the 0, go left / right while we can
+	    (let ((spacing (* 2 (default-font-width
+				    chart
+				    (draw-label gx)))))
+	      (loop for rx = (+ gx spacing) then (+ rx spacing)
+		    for lx = (- gx spacing) then (- lx spacing)
+		    while (or (before-right-p rx)
+			      (after-left-p lx))
+		    when (before-right-p rx) do (draw-label rx)
+		    when (after-left-p lx) do (draw-label lx)))))))))
 
 (defun draw-graph-area (chart graph-x graph-y graph-width graph-height)
   "draws the graph aread"
@@ -173,9 +173,6 @@ the Y axis")))
 	    (rotate (/ pi 2))
 	    (draw-centered-string 0 0 it))))
 
-
-
-      
       (when (has-data-p chart)
 	;;figure out the right scaling factors so we fill the graph    
 					;find the min/max x/y across all series
@@ -273,8 +270,8 @@ dimensions as the target for chart commands, with the specified background."
 
 (defun add-series (label data &key (color nil))
   "adds a series to the *current-chart*."
-   (push (make-instance 'series :label label :data data :color color)
-	 (chart-elements *current-chart*)))
+  (push (make-instance 'series :label label :data data :color color)
+	(chart-elements *current-chart*)))
 
 (defun set-axis (axis title &key (draw-gridlines-p T) (label-formatter #'princ-to-string))
   "set the axis on the *current-chart*.  axis is either :x or :y.

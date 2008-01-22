@@ -4,7 +4,7 @@
 
 (defpackage :net.acceleration.documenter
     (:nicknames #:adw-doc)
-    (:use #:cl #:cl-who #:cl-ppcre))
+  (:use #:cl #:cl-who #:cl-ppcre))
 
 (in-package :adw-doc)
 
@@ -38,8 +38,8 @@ results to a PNG file. The API was designed to eliminate as many decisions as po
 produce a reasonable result with minimal fuss.  It tries to scale various elements of the chart to
 fit nicely, but sometimes this goes awry." )
    (:p "ADW-Charting depends on the following libraries:"
-       (:ul
-	(:li (vecto-link))))
+     (:ul
+	 (:li (vecto-link))))
 
    (:p "The easiest way to install ADW-Charting and all its dependencies is "
      (:a :href "http://www.cliki.net/asdf-install" "ASDF-Install"))
@@ -51,16 +51,16 @@ create charts by setting up a chart context and adding or setting information on
    (:p "There are many known limitations at this point. We've got some plans on how to solve
 some of these, and other aren't priorities for me, and might stay around for ahwile.")
    (:ul 
-    (:li "All colors are RGB, represented as a list of 3 numbers between 0 and 1, eg:"
+       (:li "All colors are RGB, represented as a list of 3 numbers between 0 and 1, eg:"
 	 (:code "'(1 .5 .3)"))
-    (:li "The bounds on a pie chart are a bit goofy, as the radius of the pie is currently 
+     (:li "The bounds on a pie chart are a bit goofy, as the radius of the pie is currently 
 only determined by the height of the chart.  This means a square image will cut off the 
 legend.")
-    (:li "Another issue is with printing axis labels.  There's some code to try to keep 
+     (:li "Another issue is with printing axis labels.  There's some code to try to keep 
 those reasonably spaces, but sometimes the labels start overlapping.  Making the graph
 in two passes should let us calculate everything before starting to draw on the canvas,
 preventing this issue.")
-    (:li "The font used for all the text is included in the distribution, some random .ttf file
+     (:li "The font used for all the text is included in the distribution, some random .ttf file
 pulled from the debian freefont library.  You can specify the font file using the 
 *default-font-file* unexported variable.  I'm using a with-font macro internally that
 could solve this one."))
@@ -167,15 +167,15 @@ regarding ADW-Charting, please email "
     (null (htm (:em "nil")))
     (list (if (symbolp (first arg))
 	      (let ((name (symbol-name (first arg))))
-	      (cond 
-		((equal "QUOTE" name) (htm "'("
-					   (show-args (second arg))
-					   ")"))
-		((equal "FUNCTION" name) (htm "#'"
-					      (show-arg (second arg))))
-		(t (htm "("		
-			(show-args arg)
-			")"))))
+		(cond 
+		  ((equal "QUOTE" name) (htm "'("
+					     (show-args (second arg))
+					     ")"))
+		  ((equal "FUNCTION" name) (htm "#'"
+						(show-arg (second arg))))
+		  (t (htm "("		
+			  (show-args arg)
+			  ")"))))
 	      (htm "("
 		   (show-args arg)
 		   ")")))
@@ -222,29 +222,29 @@ regarding ADW-Charting, please email "
 
 (defhtmlfun set-axis ()
   (:blockquote "Sets the axis on the current line chart.  "
-	       (:em "axis")
-	       " must be either "
-	       (:tt ":x") " or " (:tt ":y") ".  The " (:tt "label-formatter")
-	       " must be either a format control string or a function of 1 argument that
+    (:em "axis")
+    " must be either "
+    (:tt ":x") " or " (:tt ":y") ".  The " (:tt "label-formatter")
+    " must be either a format control string or a function of 1 argument that
 returns a string with the desired axis label."))
 
 (defhtmlfun add-series ()
   (:blockquote "Add another series to the line chart.  "
-	       (:em "data")
-	       " is a list of (x y) pairs.  A color will
+    (:em "data")
+    " is a list of (x y) pairs.  A color will
 be automatically assigned if none is specified."))
 
 (defhtmlfun with-chart ()
   (:blockquote
-   "Evaluates body with a chart established with the specified
+      "Evaluates body with a chart established with the specified
 dimensions as the target for chart commands, with the specified background."))
 
 (defhtmlfun minimal-pie ()
   (let ((filename (file-namestring
 		   (adw-charting-tests::minimal-pie-chart))))
     (htm (:pre :style "height:210px"
-     (:img :border 0 :align "right" :src (str filename))
-"(with-pie-chart (300 200)
+	       (:img :border 0 :align "right" :src (str filename))
+	       "(with-pie-chart (300 200)
     (add-slice \"A\" 5.0d0)
     (add-slice \"B\" 2.0d0)
     (save-file \"minimal-pie-chart.png\"))"))))
@@ -254,8 +254,8 @@ dimensions as the target for chart commands, with the specified background."))
   (let ((filename (file-namestring
 		   (adw-charting-tests::minimal-line-chart))))
     (htm (:pre :style "height:310px"
-     (:img :border 0 :align "right" :src (str filename))
-"(with-line-chart (400 300)
+	       (:img :border 0 :align "right" :src (str filename))
+	       "(with-line-chart (400 300)
     (add-series \"A\" '((-1 -2) (0 4) (1 5) (4 6) (5 -3)))
     (add-series \"B\" '((-1 4) (0 -2) (1 6) (5 -2) (6 5)))
     (save-file \"minimal-line-chart.png\"))"))))
@@ -265,8 +265,8 @@ dimensions as the target for chart commands, with the specified background."))
   (let ((filename (file-namestring
 		   (adw-charting-tests::customized-line-chart))))
     (htm (:pre :style "height:310px"
-     (:img :border 0 :align "right" :src (str filename))
-"(with-line-chart (400 300 :background '(.7 .5 .7))
+	       (:img :border 0 :align "right" :src (str filename))
+	       "(with-line-chart (400 300 :background '(.7 .5 .7))
     (add-series \"A\" '((-1 -2) (0 4) (1 5) (4 6) (5 -3)))
     (add-series \"B\" '((-1 4) (0 -2) (1 6) (5 -2) (6 5)))
     (add-series \"C\"
@@ -300,32 +300,32 @@ be automatically assigned if none is specified."))
 	    (:head
 		(:title (str title))
 	      (:style :type "text/css"
-		  (str "
+		      (str "
       a, a:visited { text-decoration: none }
       a[href]:hover { text-decoration: underline }
       pre { background: #DDD; padding: 0.25em }
       p.download { color: red }
       a.top {font-size:smallest;}"))
-	    )
-      (:body (:h1 (str title))
-	(:blockquote (:h2 "Abstract")
-	  (:p "ADW-Charting is a simple chart drawing library for quickly
+	      )
+	  (:body (:h1 (str title))
+	    (:blockquote (:h2 "Abstract")
+	      (:p "ADW-Charting is a simple chart drawing library for quickly
 creating nice-looking pie charts and line charts.  It presents a function-oriented
 interface similar to "
-	    (vecto-link)
-	    ", and saves results to PNG.  Since ADW-Charting and all supporting
+		(vecto-link)
+		", and saves results to PNG.  Since ADW-Charting and all supporting
 libraries are written completely in Common Lisp, without depending on external
 non-Lisp libraries, it should work in any Common Lisp environment. ADW-Charting is
 available under a BSD-like license. The 'ADW' in the name is referencing my
 employer, "
-	    (:a :href "http://www.acceleration.net" "Acceleration.net")
-	    ", who has sponsored much of this work.  The current version is 0.5,
+		(:a :href "http://www.acceleration.net" "Acceleration.net")
+		", who has sponsored much of this work.  The current version is 0.5,
 released on January 18th, 2008.")
-	  (:p "The canonical location for ADW-Charting is "
-	    (:a :href canonical-url (str canonical-url)))
-	  (:p :class "download" "Download shortcut:")
-	  (:a :href download-url (str download-url)))
-	(:h2 "Contents")
-	(toc sections)
-	(content sections)
-	))))))
+	      (:p "The canonical location for ADW-Charting is "
+		(:a :href canonical-url (str canonical-url)))
+	      (:p :class "download" "Download shortcut:")
+	      (:a :href download-url (str download-url)))
+	    (:h2 "Contents")
+	    (toc sections)
+	    (content sections)
+	    ))))))

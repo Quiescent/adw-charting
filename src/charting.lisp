@@ -65,20 +65,16 @@ the size specified in the chart's label-size"
 (defmethod default-font-width ((chart chart) text)
   "gets the pixel width of the default font, as the size
 specified in the chart's label-size"
-    (aref (default-font-bounding-box chart text) 2))
-
-
-
+  (aref (default-font-bounding-box chart text) 2))
 
 (defgeneric render-chart (chart filename)
   (:documentation "renders the chart to the given file")
   (:method ((chart chart) filename)
 	   (with-canvas (:width (width chart) :height (height chart))
-	     
 	     (set-fill chart) 
-	     (clear-canvas) ;;fills in the background
+	     (clear-canvas);;fills in the background
 	     
-	     ;ensure we have colors to auto-assign
+					;ensure we have colors to auto-assign
 	     (let ((*color-stack* +default-colors+))
 	       (draw-chart chart)
 	       (when (draw-legend-p chart)
@@ -95,8 +91,8 @@ specified in the chart's label-size"
 
 (defmethod color ((item chart-element))
   (if-let (color (slot-value item 'color))
-       color
-       (setf (color item) (pop *color-stack*))))
+	  color
+	  (setf (color item) (pop *color-stack*))))
 
 (defgeneric set-fill (obj)
   (:documentation "shortcuts for setting the vecto fill color"))
