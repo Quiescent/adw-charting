@@ -25,16 +25,29 @@
   "The currently active chart. Bound for the
       duration of WITH-CHART.")
 
-(defclass chart ()
+(defclass area ()
   ((width :accessor width
 	  :initarg :width
 	  :type integer
-	  :initform 200)
+	  :initform nil)
    (height :accessor height
 	   :initarg :height
 	   :type integer
-	   :initform 200)
-   (label-size :accessor label-size
+	   :initform nil)))
+
+(defclass point ()
+  ((x :accessor x
+      :initarg :x)
+   (y :accessor y
+      :initarg :y)))
+
+(defmethod clone ((p point))
+  (make-instance 'point 
+		 :x (x p)
+		 :y (y p)))
+
+(defclass chart (area)
+  ((label-size :accessor label-size
 	       :initarg :label-size
 	       :initform 12)
    (margin :accessor margin
@@ -48,7 +61,8 @@
 	       :initform '(1 1 1))
    (chart-elements :accessor chart-elements
 		   :initarg :chart-elements
-		   :initform nil)))
+		   :initform nil))
+  (:default-initargs :width 200 :height 200))
 
 (defmethod default-font-bounding-box ((chart chart) text)
   "gets the bounding box for the given text on the given chart."
