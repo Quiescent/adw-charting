@@ -64,22 +64,22 @@
 		   :initform nil))
   (:default-initargs :width 200 :height 200))
 
-(defmethod default-font-bounding-box ((chart chart) text)
+(defmethod font-bounding-box ((chart chart) text)
   "gets the bounding box for the given text on the given chart."
   (with-font ()
     (string-bounding-box text
 			 (label-size chart)
 			 *font*)))
 
-(defmethod default-font-height ((chart chart))
+(defmethod font-height ((chart chart))
   "gets the pixel height of the default font, at
 the size specified in the chart's label-size"
-  (aref (default-font-bounding-box chart "A") 3))
+  (aref (font-bounding-box chart "A") 3))
 
-(defmethod default-font-width ((chart chart) text)
+(defmethod font-width ((chart chart) text)
   "gets the pixel width of the default font, as the size
 specified in the chart's label-size"
-  (aref (default-font-bounding-box chart text) 2))
+  (aref (font-bounding-box chart text) 2))
 
 (defgeneric render-chart (chart filename)
   (:documentation "renders the chart to the given file")
@@ -149,7 +149,7 @@ place a label should go")
   (with-graphics-state
     (with-font ()
       (let* ((elems (chart-elements chart))
-	     (text-height (default-font-height chart))
+	     (text-height (font-height chart))
 	     (box-size (* 3 text-height))
 	     (label-spacing (/ box-size 2)))
 	(set-font *font* (label-size chart)) ;set the font
@@ -166,7 +166,7 @@ place a label should go")
 		       (label elem))
 	  (translate-to-next-label chart
 				   (+ box-size label-spacing label-spacing
-				      (default-font-width chart (label elem)))
+				      (font-width chart (label elem)))
 				   (+ box-size label-spacing)))))))
 
 

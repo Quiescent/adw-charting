@@ -133,7 +133,7 @@ the Y axis")))
     (let* ((width (width chart))
 	   (height (height chart))
 	   (graph-margin (margin chart))
-	   (text-height (default-font-height chart))
+	   (text-height (font-height chart))
 	   (legend-space (* 4 text-height))
 	   (graph-height (- height graph-margin graph-margin legend-space))
 	   (graph-width (- width graph-margin graph-margin))
@@ -184,9 +184,9 @@ the Y axis")))
 	  ;;adjust our graph region to account for labels
 	  (when-let (it (y-axis chart))
 	    (let* ((text-width (loop for y in (list min-y max-y)
-				     maximizing (default-font-width chart
-						    (funcall (label-formatter it)
-							     y)) into longest
+				     maximizing (font-width chart
+							    (axis-label axis y)) 
+				     into longest
 				     finally (return longest)))
 		   (offset (+ text-width
 			      (* text-height (if (label it)
