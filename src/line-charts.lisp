@@ -148,22 +148,22 @@ the Y axis")))
 	(set-rgb-fill 0 0 0)
 
 	;;move the graph region about
-	(when-let (it (x-axis chart))
+	(when-let (axis (x-axis chart))
 	  (let ((offset (* text-height
-			   (if (label it)
+			   (if (label axis)
 			       3
 			       2))))	
 	    (incf graph-y offset)
 	    (decf graph-height offset)
 	    (setf x-axis-y (- graph-y graph-margin text-height))
 	    ;;draw the x-label
-	    (when-let (it (label it))
-	      (draw-centered-string (+ graph-x (/ graph-width 2))
+	    (when-let (label (label axis))
+	      (draw-centered-string (+ (x graph) (/ (width graph) 2))
 				    (+ (/ graph-margin 2) legend-space)
-				    it))))
+				    label))))
 
 	;;draw the y-label
-	(when-let (it (and (y-axis chart) 
+	(when-let (label (and (y-axis chart) 
 			   (label (y-axis chart))))
 	  (with-graphics-state
 	    ;;move to the site of the y axis label
@@ -171,7 +171,7 @@ the Y axis")))
 		       (+ graph-y (/ graph-height 2)))
 	    ;;rotate the canvas so we're sideways	
 	    (rotate (/ pi 2))
-	    (draw-centered-string 0 0 it))))
+	    (draw-centered-string 0 0 label))))
 
       (when (has-data-p chart)
 	;;figure out the right scaling factors so we fill the graph    
@@ -182,14 +182,14 @@ the Y axis")))
 			 (find-extremes (data series)))
 		     (chart-elements chart)))
 	  ;;adjust our graph region to account for labels
-	  (when-let (it (y-axis chart))
+	  (when-let (axis (y-axis chart))
 	    (let* ((text-width (loop for y in (list min-y max-y)
 				     maximizing (font-width chart
 							    (axis-label axis y)) 
 				     into longest
 				     finally (return longest)))
 		   (offset (+ text-width
-			      (* text-height (if (label it)
+			      (* text-height (if (label axis)
 						 3
 						 1.5)))))
 	      ;;increase graph-x to account
