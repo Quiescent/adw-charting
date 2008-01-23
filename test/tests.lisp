@@ -1,7 +1,7 @@
 (in-package :adw-charting-tests)
 
 (define-test pie-chart-total
-  (assert-equal 10 (adw-charting::total (make-instance 'pie-chart :total 10))))
+  (assert-equal 10 (adw-charting::total (make-instance 'adw-charting::pie-chart :total 10))))
 
 (define-test pie-chart-calculated-total
   "tests summing the pie-chart total from the data items"
