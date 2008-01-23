@@ -24,6 +24,9 @@ printing periodic values along the axis")
 across the chart"))
   (:documentation "represents an axis on a line chart"))
 
+(defmethod axis-label ((axis axis) data)
+  (funcall (label-formatter axis) data))
+
 (defclass line-chart (chart)
   ((x-axis :accessor x-axis
 	   :initarg :x-axis
