@@ -21,7 +21,11 @@ printing periodic values along the axis")
 		     :initarg :draw-gridlines-p
 		     :initform T
 		     :documentation "determines if grid-lines are drawn
-across the chart"))
+across the chart")
+   (mode :accessor mode
+	 :initarg :mode)
+   (angle :accessor angle
+	  :initarg :angle))
   (:documentation "represents an axis on a line chart"))
 
 (defmethod axis-label ((axis axis) data)
@@ -83,11 +87,8 @@ the Y axis")))
 	       `(when (draw-gridlines-p ,axis)
 		 ,@gridline
 		 (stroke))))
-		
-    (destructuring-bind (gx _) (dp->gp graph 0 0)
-      (declare (ignore _))
-      ;;draw y labels at regular intervals
-      (when-let (axis (y-axis (chart graph)))
+
+    (when-let (axis (y-axis (chart graph)))
 	(loop for (txt x y) in 
 	      (calculate-y-axes graph text-height y-axis-labels-x)
 	      do (let ((half-text (/ text-height 2)))
@@ -100,38 +101,52 @@ the Y axis")))
 					   y)))))
 
       (when-let (axis (x-axis (chart graph)))
-	(flet ((draw-label (x)
-		 (destructuring-bind (data-x _) (gp->dp graph x 0)
-		   (declare (ignore _))
-		   (let ((label (axis-label axis data-x)))
-		     (draw-centered-string x x-axis-labels-y label)
-		     (draw-gridline (axis)
-				    (move-to x (y graph))
-				    (line-to x
-					     (+ (y graph) (height graph))))
-		     label)))
-	       (after-left-p (x)
-		 (> x (x graph)))
-		   
-	       (before-right-p (x)
-		 (< x (+ (width graph) (x graph)))))
-	  (let ((spacing (* 2 (font-width
-			       (chart graph)
-			       (draw-label gx)))))
-	    ;;start at the 0, go left / right while we can
-	    (loop for rx = (+ gx spacing) then (+ rx spacing)
-		  for lx = (- gx spacing) then (- lx spacing)
-		  while (or (before-right-p rx)
-			    (after-left-p lx))
-		  when (before-right-p rx) do (draw-label rx)
-		  when (after-left-p lx) do (draw-label lx)))))))) 
+	
+	(loop for (txt x) in (calculate-x-axes graph)
+	      do (progn
+		   (draw-string x x-axis-labels-y txt)
+		   (draw-gridline (axis)
+				  (move-to x (y graph))
+				  (line-to x
+					   (+ (y graph) (height graph))))))
+
+	))) 
+
+(defun calculate-x-axes (graph)
+  (let ((axis (x-axis (chart graph))))  
+    (ccase (mode axis)
+      (:value (calculate-value-x graph))
+      (:category (break "should draw in order"))
+      )))
+
+(defun calculate-value-x (graph)
+  (let* ((min-x (x (data-min graph)))
+	 (max-x (x (data-max graph)))
+	 (diff (abs (- min-x max-x)))
+	 (data-interval (expt 10 
+			      (- (floor (log diff 10))
+				 1)))
+	 (axis (x-axis (chart graph)))
+	 (current-x (x graph))
+	 (lst ()))
+    ;;start drawing at 0, see how much we have
+    (loop for x = min-x then (+ x data-interval)
+	  until (> x max-x)
+	  do (when (<= current-x 
+			 (round (first (dp->gp graph x 0))))
+	       ;;draw + increment current-x
+	       (let* ((txt (axis-label axis x))
+		      (width (font-width (chart graph) txt)))
+		 (push (list txt current-x) lst)
+		 (incf current-x (+ width (margin (chart graph)))))))
+    lst))
 
 (defun calculate-y-axes (graph text-height y-axis-labels-x)
   (let* ((min-y (y (data-min graph)))
 	 (max-y (y (data-max graph)))
 	 (diff (abs (- min-y max-y)))
 	 (data-interval (expt 10 
-			      (- (round (log diff 10))
+			      (- (floor (log diff 10))
 				 1)))
 	 (axis (y-axis (chart graph)))
 	 (desired-text-space (* 2 text-height)))
@@ -140,7 +155,7 @@ the Y axis")))
     ;;be sure the interval has plenty of room in it for our text-height
     (loop for i = 1 then (1+ i)
 	  until (< desired-text-space 
-		    (* i data-interval (y (data-scale graph))))
+		   (* i data-interval (y (data-scale graph))))
 	  finally (setf data-interval (* i data-interval)))
 
     (loop for (txt gp) in
@@ -155,7 +170,7 @@ the Y axis")))
 			       (second (dp->gp graph 0 y)))))
 	  collect (list txt y-axis-labels-x gp)
 	  
-)))
+	  )))
 
 (defun draw-graph-area (graph &optional (border-only nil))
   "draws the graph aread"
@@ -174,8 +189,7 @@ the Y axis")))
 					.7
 					1) c) 2))
 			  (background (chart graph)))))
-    (fill-and-stroke)
-    ))
+    (fill-and-stroke)))
 
 
 (defmethod dp->gp ((graph graph-region) x y)
@@ -231,7 +245,7 @@ the Y axis")))
 
 	;;draw the y-label
 	(when-let (label (and (y-axis chart) 
-			   (label (y-axis chart))))
+			      (label (y-axis chart))))
 	  (with-graphics-state
 	    ;;move to the site of the y axis label
 	    (translate (+ graph-margin text-height)
@@ -296,23 +310,23 @@ the Y axis")))
 			   text-height
 			   x-axis-labels-y)))
 
-	      ;;draw the 0 line
-	      (apply #'move-to (dp->gp graph min-x 0))
-	      (apply #'line-to (dp->gp graph max-x 0))
-	      (set-rgb-stroke 0 0 0)
-	      (stroke)
+	    ;;draw the 0 line
+	    (apply #'move-to (dp->gp graph min-x 0))
+	    (apply #'line-to (dp->gp graph max-x 0))
+	    (set-rgb-stroke 0 0 0)
+	    (stroke)
 
-	      ;;TODO: make this a property of the series
-	      (with-graphics-state
-		(set-line-width 2)		
-		(dolist (series (chart-elements chart))
-		  (set-stroke series)
-		  (loop for (x y) in (data series)
-			for firstp = T then nil
-			do (apply (if firstp #'move-to #'line-to)
-				  (dp->gp graph x y)))
-		  (stroke)))
-	      (draw-graph-area graph T)
+	    ;;TODO: make this a property of the series
+	    (with-graphics-state
+	      (set-line-width 2)		
+	      (dolist (series (chart-elements chart))
+		(set-stroke series)
+		(loop for (x y) in (data series)
+		      for firstp = T then nil
+		      do (apply (if firstp #'move-to #'line-to)
+				(dp->gp graph x y)))
+		(stroke)))
+	    (draw-graph-area graph T)
 	    ))))))
 
 (defmethod translate-to-next-label ((chart line-chart) w h)
@@ -330,7 +344,7 @@ the Y axis")))
 dimensions as the target for chart commands, with the specified background."
   `(let ((*current-chart*  (make-instance 'line-chart
 					  :width ,width
-					  :height ,height				  
+					  :height ,height
 					  :background ,background)))
     ,@body))
 
@@ -339,13 +353,18 @@ dimensions as the target for chart commands, with the specified background."
   (push (make-instance 'series :label label :data data :color color)
 	(chart-elements *current-chart*)))
 
-(defun set-axis (axis title &key (draw-gridlines-p T) (label-formatter #'princ-to-string))
+(defun set-axis (axis title &key (draw-gridlines-p T) 
+		 (label-formatter #'princ-to-string)
+		 (mode :value)
+		 (angle nil))
   "set the axis on the *current-chart*.  axis is either :x or :y.
 label-formatter is either a format-compatible control string or
 a function of 1 argument to control label formatting"
   (let ((ax (make-instance 'axis
 			   :label title
 			   :draw-gridlines-p draw-gridlines-p
+			   :mode mode
+			   :angle angle
 			   :label-formatter (etypecase label-formatter
 					      (string #'(lambda (v)
 							  (format nil label-formatter v)))
