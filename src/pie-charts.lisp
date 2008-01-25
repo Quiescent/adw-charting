@@ -81,7 +81,8 @@
 				 0))
 		    ;;if we cross from E to W, go up to the NW corner first
 		    (when (and (>= x cx)
-			       (< endx cx))
+			       (>= y cy)
+			       (< (/ pi 4) segment))
 		      (line-to 0 (height chart)))
 		    
 		    ;;if we cross from W to E, go up to the SE corner first
