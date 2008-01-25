@@ -157,20 +157,26 @@ the Y axis")))
 	  
 )))
 
-(defun draw-graph-area (graph)
+(defun draw-graph-area (graph &optional (border-only nil))
   "draws the graph aread"
   (with-graphics-state
     ;;set the chart background as the avg
     ;;between the background color and 1
-    (set-fill (mapcar #'(lambda (c)
-			  (/ (+ (if (eq 1 c)
-				    .7
-				    1) c) 2))
-		      (background (chart graph))))
+    
     (set-rgb-stroke 0 0 0)    
     (rectangle (1- (x graph)) (1- (y graph))
 	       (1+ (width graph)) (1+ (height graph)))
-    (fill-and-stroke)))
+    
+    (if border-only
+	(set-rgba-fill 0 0 0 0)
+	(set-fill (mapcar #'(lambda (c)
+			      (/ (+ (if (eq 1 c)
+					.7
+					1) c) 2))
+			  (background (chart graph)))))
+    (fill-and-stroke)
+    ))
+
 
 (defmethod dp->gp ((graph graph-region) x y)
   "convert a point from data space to graph space"  
@@ -306,6 +312,7 @@ the Y axis")))
 			do (apply (if firstp #'move-to #'line-to)
 				  (dp->gp graph x y)))
 		  (stroke)))
+	      (draw-graph-area graph T)
 	    ))))))
 
 (defmethod translate-to-next-label ((chart line-chart) w h)
