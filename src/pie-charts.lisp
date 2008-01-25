@@ -57,43 +57,44 @@
 		(rectangle 0 0 width height)
 		(fill-path)) 
 	      (let* ((bigr (* 3 radius));; more than one slice, go for it
-		     (x (+ cx bigr))
+		     (x (+ cx radius))
 		     (y cy)
 		     (angle 0)
-		     (val-to-radians (/ (* 2 pi) (total chart)))
-		     (half-pi (/ pi 2)))
-		(dolist (item slices)
+		     (val-to-radians (/ (* 2 pi) (total chart))))
+		(dolist (item (reverse slices))
 		  (let* ((color (color item))
 			 (segment (* val-to-radians (value item)))
 			 (slice-size (+ angle segment))
 			 (endx (+ cx (* bigr (cos slice-size))))
-			 (endy (+ cy (* bigr (sin slice-size))))
-			 (obtuse-p (> segment half-pi)))		    
-		    ;;draw the sector as a huge wedge, the clipping path will take care of the spill-over
+			 (endy (+ cy (* bigr (sin slice-size)))))		    
+		    ;;draw the sector as a huge chunk, the clipping path will take care of making it round
 		    (move-to cx cy)
 		    (line-to x y)
-		    ;;if we're too big to encompassed with a wedge, fan out.  Assumes the slices
-		    ;; are drawn counter-clockwise, starting at 3 o'clock.
-		    (when obtuse-p
-		      ;; move up to the top of graph, at the left or right edge depending on where we
-		      ;; start
-		      (when (>= y cy)
-			(line-to (if (> x cx)
-				     (width chart)
-				     0)
-				 (height chart)))
-
-		      ;; if we cross the center-y, go all the way around
-		      (when (and (>= y cy) (or
-					    (> cy endy)
-					    (> cx endx)))
-			(line-to 0 (height chart))
-			(line-to 0 0))
-
-		      ;; if we cross the center-x, go all the way right
-		      (when (> endx cx)		   
-			(line-to (width chart) 0)))
-	     
+		    ;;;assumes slices drawn counter-clockwise, starting at 3o'clock
+		    
+		    ;;draw to the nearest corner of the graph from our piece
+		    (line-to (if (>= x cx)
+				 (width chart)
+				 0)
+			     (if (>= y cy)
+				 (height chart)
+				 0))
+		    ;;if we cross from E to W, go up to the NW corner first
+		    (when (and (>= x cx)
+			       (< endx cx))
+		      (line-to 0 (height chart)))
+		    
+		    ;;if we cross from W to E, go up to the SE corner first
+		    (when (and (< x cx)
+			       (>= endx cx))
+		      (line-to (width chart) 0))
+		    
+		    ;;if we cross from top to bottom, go down to the SW corner
+		    (when (and (>= y cy)
+			       (< endy cy))
+		      (line-to 0 0))
+		    
+		    ;;now to our end point
 		    (line-to endx endy)
 		    (line-to cx cy)
 		    (close-subpath)
