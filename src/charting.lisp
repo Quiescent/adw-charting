@@ -176,17 +176,6 @@ place a label should go")
 				      (font-width chart (label elem)))
 				   (+ box-size label-spacing)))))))
 
-
-(defgeneric render-chart (chart filename)
-  (:documentation "renders the chart to the given file")
-  (:method ((chart chart) filename)
-	   (with-canvas (:width (width chart) :height (height chart))
-	     %render-chart(chart)
-	     (save-png-stream )
-	     (save-png filename))))
-
-
-
 (defun save-file (filename)
   "saves the *current-chart* to the given file."
   (with-canvas (:width (width *current-chart*) :height (height *current-chart*))

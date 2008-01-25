@@ -152,11 +152,11 @@ the Y axis")))
   (let* ((min-y (y (data-min graph)))
 	 (max-y (y (data-max graph)))
 	 (axis (y-axis (chart graph)))
+	 (diff (abs (- min-y max-y)))
 	 (data-interval (or (data-interval axis)
 			    (expt 10 
 				  (- (floor (log diff 10))
 				     1))))
-	 (diff (abs (- min-y max-y)))
 	 (desired-text-space (* 2 text-height)))
     ;;be sure the interval has plenty of room in it for our text-height
     (loop for i = 1 then (1+ i)
