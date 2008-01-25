@@ -92,7 +92,7 @@ specified in the chart's label-size"
 	     (clear-canvas);;fills in the background
 	     
 					;ensure we have colors to auto-assign
-	     (let ((*color-stack* +default-colors+))
+	     (let ((*color-stack* (copy-list +default-colors+)))
 	       (draw-chart chart)
 	       (when (draw-legend-p chart)
 		 (draw-legend chart)))
