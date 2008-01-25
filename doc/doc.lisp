@@ -14,17 +14,16 @@
 
 (defvar *tree* )
 (defvar *stream* nil)
+(eval-when (:compile-toplevel :load-toplevel :execute)
+  (defmacro defhtmlfun (name lambda-list &rest body)
+    `(defun ,name ,lambda-list
+      (with-html-output (*stream*)
+	,@body )))
 
-(defmacro defhtmlfun (name lambda-list &rest body)
-  `(defun ,name ,lambda-list
-    (with-html-output (*stream*)
-      ,@body )))
-
-(defmacro defhtmlmethod (name lambda-list &rest body)
-  `(defmethod ,name ,lambda-list
-    (with-html-output (*stream*)
-      ,@body )))
-
+  (defmacro defhtmlmethod (name lambda-list &rest body)
+    `(defmethod ,name ,lambda-list
+      (with-html-output (*stream*)
+	,@body ))))
 
 (defhtmlfun stub ()
   (:blink "STUB"))
@@ -117,6 +116,8 @@ regarding ADW-Charting, please email "
 		 :type code-type
 		 :return-val return-val
 		 :args args))
+(defgeneric toc-entry (s))
+(defgeneric heading (s depth))
 
 (defhtmlmethod toc-entry ((s section))
   (str (title s)))
@@ -198,7 +199,8 @@ regarding ADW-Charting, please email "
 	(make-section "Examples" #'examples
 		      (make-section "Minimal Pie Chart" #'minimal-pie)
 		      (make-section "Minimal Line Chart" #'minimal-line)
-		      (make-section "Customized Line Chart" #'customized-line))
+		      (make-section "Customized Line Chart" #'customized-line)
+		      (make-section "Boinkmark" #'boinkmark))
 	(make-section "Dictionary" #'dictionary
 		      (make-code "with-pie-chart" #'with-chart "Macro"
 				 '((width height &key (background '(1 1 1))) &body body))
@@ -267,10 +269,9 @@ dimensions as the target for chart commands, with the specified background."))
     (htm (:pre :style "height:310px"
 	       (:img :border 0 :align "right" :src (str filename))
 	       "(with-line-chart (400 300 :background '(.7 .5 .7))
-    (add-series \"A\" '((-1 -2) (0 4) (1 5) (4 6) (5 -3)))
-    (add-series \"B\" '((-1 4) (0 -2) (1 6) (5 -2) (6 5)))
-    (add-series \"C\"
-		'((-1 0) (0 3) (1 1) (2 5) (4 -6))
+    (add-series \"A\" '((-.1 -.2) (0 .4) (.1 .5) (.4 .6) (.5 -.3))
+    (add-series \"B\" '((-.1 .4) (0 -.2) (.1 .6) (.5 -.2) (.6 .5))
+    (add-series \"C\" '((-.1 0) (0 .3) (.1 .1) (.2 .5) (.4 -.6))
 		:color '(.3 .7 .9))
     (set-axis :y \"widgets\" :label-formatter \"~,2F\")
     (set-axis :x nil
@@ -279,6 +280,25 @@ dimensions as the target for chart commands, with the specified background."))
                                    ;;could do something more interesting here
 				   (format nil \"~,1F\" (expt 2 v))))
     (save-file \"customized-line-chart.png\"))"))))
+
+(defhtmlfun boinkmark ()
+  (let ((filename (file-namestring
+		   (adw-charting-tests::boinkmark))))
+    (htm (:pre :style "height:310px"
+	       (:img :border 0 :align "right" :src (str filename))
+	       "(let ((data +boink-data+))
+    (with-line-chart (400 300)
+      (add-series \" baker: SBCL\"
+                  (loop for row in data
+                        for i from 0
+                        collect (list i (nth 4 row))))
+      (set-axis :y \"seconds\"  :label-formatter \"~,2F\")
+      (set-axis :x nil
+                :draw-gridlines-p nil
+                :label-formatter #'(lambda (i)
+                                     (nth 3 (nth (truncate i) data))))
+      (save-file \"boink.png\"))))"
+	      ))))
 
 (defhtmlfun add-slice ()
   (:blockquote "Adds a slice to the chart, with an optional color.  A color will
