@@ -47,12 +47,11 @@ the Y axis")))
 		:initform nil)
    (data-scale :accessor data-scale
 	       :initarg :data-scale
-	       :initform nil)))
-
-(defmethod data-origin ((gr graph-region))
-  (if-let (d (slot-value gr 'data-origin))
-	  d
-	  (setf (data-origin gr) (clone gr))))
+	       :initform nil)
+   (data-min :accessor data-min 
+	     :initform nil)
+   (data-max :accessor data-max 
+	     :initform nil)))
 
 (defmethod offset-y ((gr graph-region) offset)
   (incf (y gr) offset)
@@ -219,6 +218,8 @@ the Y axis")))
 	     (mapcan #'(lambda (series)
 			 (find-extremes (data series)))
 		     (chart-elements chart)))
+	  (setf (data-min graph) (make-point min-x min-y))
+	  (setf (data-max graph) (make-point max-x max-y))
 	  ;;adjust our graph region to account for labels
 	  (when-let (axis (y-axis chart))
 	    (let* ((text-width (loop for y in (list min-y max-y)
