@@ -74,7 +74,7 @@
 		    (line-to x y)
 		    ;;if we're too big to encompassed with a wedge, fan out.  Assumes the slices
 		    ;; are drawn counter-clockwise, starting at 3 o'clock.
-		    (when obtuse-p		   
+		    (when obtuse-p
 		      ;; move up to the top of graph, at the left or right edge depending on where we
 		      ;; start
 		      (when (>= y cy)
@@ -84,7 +84,9 @@
 				 (height chart)))
 
 		      ;; if we cross the center-y, go all the way around
-		      (when (and (>= y cy) (> cy endy))
+		      (when (and (>= y cy) (or
+					    (> cy endy)
+					    (> cx endx)))
 			(line-to 0 (height chart))
 			(line-to 0 0))
 

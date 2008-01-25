@@ -9,6 +9,16 @@
     (add-slice "B" 2.0d0)
     (save-file (merge-pathnames *root* "minimal-pie-chart.png"))))
 
+(defun bigger-pie-chart ()  
+  (with-pie-chart (300 200)
+    (loop for (label value) in '(("A" 400)
+				 ("B" 217)
+				 ("C" 212.5)
+				 ("D" 350)
+				 ("E" 1000))
+	  do (add-slice label value))
+    (save-file (merge-pathnames *root* "bigger-pie-chart.png"))))
+
 (defun minimal-line-chart ()
   (with-line-chart (400 300)
     (add-series "A" '((-1 -2) (0 4) (1 5) (4 6) (5 -3)))
