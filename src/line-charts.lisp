@@ -261,7 +261,7 @@ the Y axis")))
 
 	  (draw-graph-area graph)
 	
-	  (let* ((d-o (data-origin graph))
+	  (let* ((d-o (make-point (x graph) (y graph)))
 		 (scale-x (/ (width graph) 
 			     (- max-x min-x)))
 		 (scale-y (/ (height graph)
