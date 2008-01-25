@@ -22,6 +22,9 @@ printing periodic values along the axis")
 		     :initform T
 		     :documentation "determines if grid-lines are drawn
 across the chart")
+   (data-interval :accessor data-interval
+		  :initarg :data-interval
+		  :initform nil)
    (mode :accessor mode
 	 :initarg :mode)
    (angle :accessor angle
@@ -124,10 +127,12 @@ the Y axis")))
   (let* ((min-x (x (data-min graph)))
 	 (max-x (x (data-max graph)))
 	 (diff (abs (- min-x max-x)))
-	 (data-interval (expt 10 
-			      (- (floor (log diff 10))
-				 1)))
 	 (axis (x-axis (chart graph)))
+	 (data-interval (or (data-interval axis)
+			    (expt 10 
+				  (- (floor (log diff 10))
+				     1))))
+	 
 	 (current-x (x graph))
 	 (lst ()))
     ;;start drawing at 0, see how much we have
@@ -146,11 +151,12 @@ the Y axis")))
 (defun calculate-y-axes (graph text-height y-axis-labels-x)
   (let* ((min-y (y (data-min graph)))
 	 (max-y (y (data-max graph)))
-	 (diff (abs (- min-y max-y)))
-	 (data-interval (expt 10 
-			      (- (floor (log diff 10))
-				 1)))
 	 (axis (y-axis (chart graph)))
+	 (data-interval (or (data-interval axis)
+			    (expt 10 
+				  (- (floor (log diff 10))
+				     1))))
+	 (diff (abs (- min-y max-y)))
 	 (desired-text-space (* 2 text-height)))
     ;;be sure the interval has plenty of room in it for our text-height
     (loop for i = 1 then (1+ i)
@@ -357,6 +363,7 @@ dimensions as the target for chart commands, with the specified background."
 (defun set-axis (axis title &key (draw-gridlines-p T) 
 		 (label-formatter #'princ-to-string)
 		 (mode :value)
+		 (data-interval nil)
 		 (angle nil))
   "set the axis on the *current-chart*.  axis is either :x or :y.
 label-formatter is either a format-compatible control string or
@@ -366,6 +373,7 @@ a function of 1 argument to control label formatting"
 			   :draw-gridlines-p draw-gridlines-p
 			   :mode mode
 			   :angle angle
+			   :data-interval data-interval
 			   :label-formatter (etypecase label-formatter
 					      (string #'(lambda (v)
 							  (format nil label-formatter v)))
