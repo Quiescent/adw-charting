@@ -10,13 +10,13 @@
 (eval-when (:compile-toplevel :load-toplevel :execute)
   (defmacro with-font ((&optional font-file) &body body)
     "ensures *font* is a valid font loader."
-    `(let ((*font* (or *font* (get-font (or ,font-file *default-font-file*)))))
+    `(let ((*font* (or *font* (get-font (or ,font-file (merge-pathnames
+							*default-font-file*
+							(asdf:component-pathname
+							 (asdf:find-system :adw-charting))))))))
       ,@body)))
 
-(defvar *default-font-file* (merge-pathnames
-			     "FreeSans.ttf"
-			     (asdf:component-pathname
-			      (asdf:find-system :adw-charting))))
+(defvar *default-font-file* "FreeSans.ttf")
 
 (defvar *color-stack* +default-colors+)
 (defvar *current-font* nil "a font object")
