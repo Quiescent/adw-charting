@@ -6,6 +6,7 @@
     (:export
        ;;generic
        :save-file
+       :save-stream
        ;;pie-chart related
        :with-pie-chart
        :add-slice

@@ -6,6 +6,14 @@
 				 (0 1 1)
 				 (0 1 0)
 				 (0 0 1)))
+(defvar *default-font-file* "FreeSans.ttf")
+(defvar *color-stack* +default-colors+)
+(defvar *current-font* nil "a font object")
+(defvar *font* nil "a font object")
+(defvar *current-chart* nil
+  "The currently active chart. Bound for the
+      duration of WITH-CHART.")
+
 
 (eval-when (:compile-toplevel :load-toplevel :execute)
   (defmacro with-font ((&optional font-file) &body body)
@@ -16,14 +24,6 @@
 							 (asdf:find-system :adw-charting))))))))
       ,@body)))
 
-(defvar *default-font-file* "FreeSans.ttf")
-
-(defvar *color-stack* +default-colors+)
-(defvar *current-font* nil "a font object")
-(defvar *font* nil "a font object")
-(defvar *current-chart* nil
-  "The currently active chart. Bound for the
-      duration of WITH-CHART.")
 
 (defclass area ()
   ((width :accessor width
@@ -84,19 +84,15 @@ the size specified in the chart's label-size"
 specified in the chart's label-size"
   (aref (font-bounding-box chart text) 2))
 
-(defgeneric render-chart (chart filename)
-  (:documentation "renders the chart to the given file")
-  (:method ((chart chart) filename)
-	   (with-canvas (:width (width chart) :height (height chart))
-	     (set-fill chart) 
-	     (clear-canvas);;fills in the background
-	     
-					;ensure we have colors to auto-assign
-	     (let ((*color-stack* (copy-list +default-colors+)))
-	       (draw-chart chart)
-	       (when (draw-legend-p chart)
-		 (draw-legend chart)))
-	     (save-png filename))))
+(defun %render-chart (&optional (chart *current-chart*))
+  (set-fill chart) 
+  (clear-canvas);;fills in the background
+  
+  ;;ensure we have colors to auto-assign
+  (let ((*color-stack* (copy-list +default-colors+)))
+    (draw-chart chart)
+    (when (draw-legend-p chart)
+      (draw-legend chart))))
 
 (defgeneric draw-chart (chart)
   (:documentation "draws the chart, assuming a vecto canvas is open"))
@@ -181,6 +177,24 @@ place a label should go")
 				   (+ box-size label-spacing)))))))
 
 
+(defgeneric render-chart (chart filename)
+  (:documentation "renders the chart to the given file")
+  (:method ((chart chart) filename)
+	   (with-canvas (:width (width chart) :height (height chart))
+	     %render-chart(chart)
+	     (save-png-stream )
+	     (save-png filename))))
+
+
+
 (defun save-file (filename)
   "saves the *current-chart* to the given file."
-  (render-chart *current-chart* filename))
+  (with-canvas (:width (width *current-chart*) :height (height *current-chart*))
+    (%render-chart)
+    (save-png filename)))
+
+(defun save-stream (stream)
+  "saves the *current-chart* to the given stream."
+  (with-canvas (:width (width *current-chart*) :height (height *current-chart*))
+    (%render-chart)
+    (save-png-stream stream)))
