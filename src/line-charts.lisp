@@ -104,7 +104,8 @@ the Y axis")))
 	
 	(loop for (txt x) in (calculate-x-axes graph)
 	      do (progn
-		   (draw-string x x-axis-labels-y txt)
+		   (draw-centered-string x  
+				x-axis-labels-y txt)
 		   (draw-gridline (axis)
 				  (move-to x (y graph))
 				  (line-to x
@@ -138,7 +139,8 @@ the Y axis")))
 	       (let* ((txt (axis-label axis x))
 		      (width (font-width (chart graph) txt)))
 		 (push (list txt current-x) lst)
-		 (incf current-x (+ width (margin (chart graph)))))))
+		 (incf current-x (+ width
+				    (margin (chart graph)))))))
     lst))
 
 (defun calculate-y-axes (graph text-height y-axis-labels-x)
@@ -150,8 +152,6 @@ the Y axis")))
 				 1)))
 	 (axis (y-axis (chart graph)))
 	 (desired-text-space (* 2 text-height)))
-    (format *trace-output* "interval: ~a~%min-y: ~a~%max-y: ~a~%" 
-	    data-interval min-y max-y)
     ;;be sure the interval has plenty of room in it for our text-height
     (loop for i = 1 then (1+ i)
 	  until (< desired-text-space 
@@ -161,9 +161,10 @@ the Y axis")))
     (loop for (txt gp) in
 	  (nconc
 	   (loop for y = 0 then (+ y data-interval)
-		 until (> y max-y)
-		 collect (list (axis-label axis y) 
-			       (second (dp->gp graph 0 y))))
+		 for gy = (second (dp->gp graph 0 y))
+		 until (> gy (+ (height graph) (y graph)))
+		 collect (list (axis-label axis y)
+			       gy))
 	   (loop for y = (- data-interval) then (- y data-interval)
 		 until (< y min-y)
 		 collect (list (axis-label axis y) 
