@@ -305,8 +305,8 @@ be automatically assigned if none is specified."))
 
 (defun adw-charting-doc ()
   (let ((title "ADW-Charting - simple chart drawing with Common Lisp")
-	(canonical-url "http://ryepup.unwashedmeme.com/lisp/adw-charting/")
-	(download-url "http://ryepup.unwashedmeme.com/lisp/adw-charting/adw-charting.tgz")
+	(canonical-url "http://common-lisp.net/project/adw-charting/")
+	(download-url "http://common-lisp.net/project/adw-charting/adw-charting.tgz")
 	(sections (get-sections))
 	(outfile (merge-pathnames *root* #P"./index.html")))
     (setf adw-charting-tests::*root* *root*)
@@ -338,8 +338,8 @@ non-Lisp libraries, it should work in any Common Lisp environment. ADW-Charting 
 available under a BSD-like license. The 'ADW' in the name is referencing my
 employer, "
 		(:a :href "http://www.acceleration.net" "Acceleration.net")
-		", who has sponsored much of this work.  The current version is 0.5,
-released on January 18th, 2008.")
+		", who has sponsored much of this work.  The current version is 0.6,
+released on January 24th, 2008.")
 	      (:p "The canonical location for ADW-Charting is "
 		(:a :href canonical-url (str canonical-url)))
 	      (:p :class "download" "Download shortcut:")
