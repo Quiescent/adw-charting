@@ -263,9 +263,9 @@ the Y axis")))
 	
 	  (let* ((d-o (data-origin graph))
 		 (scale-x (/ (width graph) 
-			     (max 1 (- max-x min-x))))
-		 (scale-y (/ (height graph) 
-			     (max 1 (* 1.1 (- max-y min-y))))))
+			     (- max-x min-x)))
+		 (scale-y (/ (height graph)
+			     (* 1.1 (- max-y min-y)))))
 	    (setf (data-scale graph) (make-instance 'point 
 						    :x scale-x
 						    :y scale-y))
