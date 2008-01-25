@@ -197,7 +197,8 @@ the Y axis")))
 				 :x graph-margin
 				 :y (floor (+ legend-space graph-margin)) 
 				 :width (- width graph-margin graph-margin)
-				 :height (- height graph-margin graph-margin legend-space)
+				 :height (- height graph-margin graph-margin 
+					    legend-space)
 				 :chart chart))
 	   (y-axis-labels-x nil)
 	   (x-axis-labels-y nil))
@@ -214,6 +215,7 @@ the Y axis")))
 			       3
 			       2))))	
 	    (offset-y graph offset)
+	    
 	    (setf x-axis-labels-y (- (y graph) graph-margin text-height))
 	    ;;draw the x-label
 	    (when-let (label (label axis))
@@ -228,6 +230,7 @@ the Y axis")))
 	    ;;move to the site of the y axis label
 	    (translate (+ graph-margin text-height)
 		       (+ (y graph) (/ (height graph) 2)))
+	   
 	    ;;rotate the canvas so we're sideways	
 	    (rotate (/ pi 2))
 	    (draw-centered-string 0 0 label))))
@@ -267,8 +270,11 @@ the Y axis")))
 						    :x scale-x
 						    :y scale-y))
 	    ;;adjust the origins if we need to
+
 	    (when (minusp min-y)
-	      (incf (y d-o) (abs (* scale-y min-y))))
+	      (incf (y d-o) (abs (* scale-y min-y)))
+
+	      )
 	    (when (minusp min-x)
 	      (incf (x d-o) (abs (* scale-x min-x))))
 	    (setf (data-origin graph) d-o)
