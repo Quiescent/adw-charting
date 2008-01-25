@@ -54,12 +54,14 @@ the Y axis")))
 	     :initform nil)))
 
 (defmethod offset-y ((gr graph-region) offset)
-  (incf (y gr) offset)
-  (decf (height gr) offset))
+  (let ((offset (floor offset)))
+    (incf (y gr) offset)
+    (decf (height gr) offset)))
 
 (defmethod offset-x ((gr graph-region) offset)
-  (incf (x gr) offset)
-  (decf (width gr) offset))
+  (let ((offset (floor offset)))
+    (incf (x gr) offset)
+    (decf (width gr) offset)))
 
 (defun find-extremes (data)
   "takes a list of (x y) pairs, and returns the ((x-min y-min) (x-max y-max))"
@@ -151,11 +153,10 @@ the Y axis")))
 
 (defmethod dp->gp ((graph graph-region) x y)
   "convert a point from data space to graph space"  
-  (mapcar #'floor 
-	  (list (+ (x (data-origin graph)) 
-		   (* (x (data-scale graph)) x))
-		(+ (y (data-origin graph)) 
-		   (* (y (data-scale graph)) y)))))
+  (list (+ (x (data-origin graph)) 
+	   (* (x (data-scale graph)) x))
+	(+ (y (data-origin graph)) 
+	   (* (y (data-scale graph)) y))))
 
 (defmethod gp->dp ((graph graph-region) x y)
   "convert a point from graph space to data space"
@@ -173,7 +174,7 @@ the Y axis")))
 	   (legend-space (* 4 text-height))
 	   (graph (make-instance 'graph-region 
 				 :x graph-margin
-				 :y (+ legend-space graph-margin) 
+				 :y (floor (+ legend-space graph-margin)) 
 				 :width (- width graph-margin graph-margin)
 				 :height (- height graph-margin graph-margin legend-space)
 				 :chart chart))
