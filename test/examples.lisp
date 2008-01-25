@@ -23,7 +23,7 @@
 		'((-.1 0) (0 .3) (.1 .1) (.2 .5) (.4 -.6))
 		:color '(.3 .7 .9))
     (set-axis :y "widgets" :label-formatter "~,2F")
-    (set-axis :x "foo"
+    (set-axis :x nil
 	      :draw-gridlines-p nil
 	      :label-formatter #'(lambda (v)
 				   ;;could do something more interesting here
@@ -168,15 +168,14 @@
                  0.6656666666666667d0 0.008647414514048853d0)))
 
 (defun boinkmark ()
-  (let ((data +boink-data+))
-    (with-line-chart (400 300)
-      (add-series "baker: SBCL"
-                  (loop for row in data
-                        for i from 0
-                        collect (list i (nth 4 row))))
-      (set-axis :y "seconds" :label-formatter "~,2F")
-      (set-axis :x nil
-                :draw-gridlines-p nil
-                :label-formatter #'(lambda (i)
-                                     (nth 3 (nth (truncate i) data))))
-      (save-file (merge-pathnames *root* "boink.png")))))
+  (with-line-chart (400 300)
+    (add-series "baker: SBCL"
+		(loop for row in +boink-data+
+		      for i from 0
+		      collect (list i (nth 4 row))))
+    (set-axis :y "seconds" :label-formatter "~,2F")
+    (set-axis :x nil
+	      :draw-gridlines-p nil
+	      :label-formatter #'(lambda (i)
+				   (nth 3 (nth (truncate i) +boink-data+))))
+    (save-file (merge-pathnames *root* "boink.png"))))

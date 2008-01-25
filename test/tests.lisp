@@ -16,4 +16,5 @@
 (define-test examples
   (assert-true (and (minimal-pie-chart)
 		    (minimal-line-chart)
-		    (customized-line-chart))))
+		    (customized-line-chart)
+		    (boinkmark))))

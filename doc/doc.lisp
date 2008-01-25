@@ -286,18 +286,17 @@ dimensions as the target for chart commands, with the specified background."))
 		   (adw-charting-tests::boinkmark))))
     (htm (:pre :style "height:310px"
 	       (:img :border 0 :align "right" :src (str filename))
-	       "(let ((data +boink-data+))
-    (with-line-chart (400 300)
+	       "(with-line-chart (400 300)
       (add-series \" baker: SBCL\"
-                  (loop for row in data
+                  (loop for row in +boink-data+
                         for i from 0
                         collect (list i (nth 4 row))))
       (set-axis :y \"seconds\"  :label-formatter \"~,2F\")
       (set-axis :x nil
                 :draw-gridlines-p nil
                 :label-formatter #'(lambda (i)
-                                     (nth 3 (nth (truncate i) data))))
-      (save-file \"boink.png\"))))"
+                                     (nth 3 (nth (truncate i) +boink-data+))))
+      (save-file \"boink.png\")))"
 	      ))))
 
 (defhtmlfun add-slice ()
