@@ -109,7 +109,15 @@ specified in the chart's label-size"
 (defmethod color ((item chart-element))
   (if-let (color (slot-value item 'color))
 	  color
-	  (setf (color item) (pop *color-stack*))))
+	  (let ((c (pop *color-stack*)))
+
+	    (setf *color-stack* (nconc *color-stack*				       
+				       (list (mapcar #'(lambda (x)
+						   (/ (+ (if (eq 1 x)
+							     .7
+							     1) x) 2))
+					       c))))
+	    (setf (color item) c))))
 
 (defgeneric set-fill (obj)
   (:documentation "shortcuts for setting the vecto fill color"))
