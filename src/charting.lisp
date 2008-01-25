@@ -45,6 +45,9 @@
   (make-instance 'point 
 		 :x (x p)
 		 :y (y p)))
+(defun make-point (x y)
+  (make-instance 'point :x x :y y)
+  )
 
 (defclass chart (area)
   ((label-size :accessor label-size
