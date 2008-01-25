@@ -295,7 +295,7 @@ dimensions as the target for chart commands, with the specified background."))
       (set-axis :x nil
                 :draw-gridlines-p nil
                 :label-formatter #'(lambda (i)
-                                     (nth 3 (nth (truncate i) +boink-data+))))
+                                     (nth 3 (nth i +boink-data+))))
       (save-file \"boink.png\")))"
 	      ))))
 

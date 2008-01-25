@@ -177,5 +177,5 @@
     (set-axis :x nil
 	      :draw-gridlines-p nil
 	      :label-formatter #'(lambda (i)
-				   (nth 3 (nth (truncate i) +boink-data+))))
+				   (nth 3 (nth i +boink-data+))))
     (save-file (merge-pathnames *root* "boink.png"))))
