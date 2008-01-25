@@ -84,30 +84,20 @@ the Y axis")))
 		 ,@gridline
 		 (stroke))))
 		
-    (destructuring-bind (gx gy) (dp->gp graph 0 0)
+    (destructuring-bind (gx _) (dp->gp graph 0 0)
+      (declare (ignore _))
       ;;draw y labels at regular intervals
       (when-let (axis (y-axis (chart graph)))
-	(flet ((draw-label (y)
-		 (destructuring-bind (_ data-y) (gp->dp graph 0 y)
-		   (declare (ignore _))
-		   (draw-string y-axis-labels-x (- y (/ text-height 2))
-				(axis-label axis data-y))
+	(loop for (txt x y) in 
+	      (calculate-y-axes graph text-height y-axis-labels-x)
+	      do (let ((half-text (/ text-height 2)))
+
+		   (draw-string x (- y half-text) txt)
 		   (draw-gridline (axis)
 				  (move-to (x graph) y)
 				  (line-to (+ (x graph) 
 					      (width graph)) 
-					   y))))
-	       (below-top-p (y)
-		 (< y (+ (height graph) (y graph))))
-	       (above-bottom-p (y)
-		 (> y (y graph))))
-	  (let ((spacing (* text-height 3)))
-	    ;;start at 0, go up until we can't draw any more
-	    (loop for uy = gy then (+ uy spacing)
-		  for dy = (- gy spacing) then (- dy spacing)
-		  while (or (below-top-p uy) (above-bottom-p dy))
-		  when (below-top-p uy) do (draw-label uy)
-		  when (above-bottom-p dy) do (draw-label dy)))))
+					   y)))))
 
       (when-let (axis (x-axis (chart graph)))
 	(flet ((draw-label (x)
@@ -134,8 +124,39 @@ the Y axis")))
 		  while (or (before-right-p rx)
 			    (after-left-p lx))
 		  when (before-right-p rx) do (draw-label rx)
-		  when (after-left-p lx) do (draw-label lx))))))))
- 
+		  when (after-left-p lx) do (draw-label lx)))))))) 
+
+(defun calculate-y-axes (graph text-height y-axis-labels-x)
+  (let* ((min-y (y (data-min graph)))
+	 (max-y (y (data-max graph)))
+	 (diff (abs (- min-y max-y)))
+	 (data-interval (expt 10 
+			      (- (round (log diff 10))
+				 1)))
+	 (axis (y-axis (chart graph)))
+	 (desired-text-space (* 2 text-height)))
+    (format *trace-output* "interval: ~a~%min-y: ~a~%max-y: ~a~%" 
+	    data-interval min-y max-y)
+    ;;be sure the interval has plenty of room in it for our text-height
+    (loop for i = 1 then (1+ i)
+	  until (< desired-text-space 
+		    (* i data-interval (y (data-scale graph))))
+	  finally (setf data-interval (* i data-interval)))
+
+    (loop for (txt gp) in
+	  (nconc
+	   (loop for y = 0 then (+ y data-interval)
+		 until (> y max-y)
+		 collect (list (axis-label axis y) 
+			       (second (dp->gp graph 0 y))))
+	   (loop for y = (- data-interval) then (- y data-interval)
+		 until (< y min-y)
+		 collect (list (axis-label axis y) 
+			       (second (dp->gp graph 0 y)))))
+	  collect (list txt y-axis-labels-x gp)
+	  
+)))
+
 (defun draw-graph-area (graph)
   "draws the graph aread"
   (with-graphics-state
