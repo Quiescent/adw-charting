@@ -189,3 +189,14 @@
 	      :label-formatter #'(lambda (i)
 				   (nth 3 (nth i +boink-data+))))
     (save-file (merge-pathnames *root* "boink.png"))))
+
+(defun stuart-mackey-1 ()
+  (with-line-chart (400 300)
+    (add-series "test" '((1 0.0) (2 2.0) (3 3.0) (4 1.5)) :color '(0 0 1))
+    (set-axis :y "amount" :label-formatter "~,2f")
+    (set-axis :x "days" :data-interval 1
+	      :draw-gridlines-p nil	   
+	      :label-formatter (lambda (v) (format nil "~d" (round v))))
+    (save-file (merge-pathnames *root* "stuart-mackey-1.png"))))
+
+

@@ -137,14 +137,15 @@ the Y axis")))
 	 (lst ()))
     ;;start drawing at 0, see how much we have
     (loop for x = min-x then (+ x data-interval)
+	  for gx = (round (first (dp->gp graph x 0)))
 	  until (> x max-x)
-	  do (when (<= current-x 
-			 (round (first (dp->gp graph x 0))))
-	       ;;draw + increment current-x
+	  do (when (<= current-x gx)
+	       ;;record + increment current-x
 	       (let* ((txt (axis-label axis x))
 		      (width (font-width (chart graph) txt)))
-		 (push (list txt current-x) lst)
-		 (incf current-x (+ width
+		 
+		 (push (list txt gx) lst)
+		 (setf current-x (+ gx width
 				    (margin (chart graph)))))))
     lst))
 
@@ -293,17 +294,20 @@ the Y axis")))
 			     (- max-x min-x)))
 		 (scale-y (/ (height graph)
 			     (* 1.1 (- max-y min-y)))))
-	    (setf (data-scale graph) (make-instance 'point 
-						    :x scale-x
-						    :y scale-y))
+	    (setf (data-scale graph) (make-point scale-x
+						 scale-y))
 	    ;;adjust the origins if we need to
 
 	    (when (minusp min-y)
-	      (incf (y d-o) (abs (* scale-y min-y)))
+	      (incf (y d-o) (abs (* scale-y min-y))))
 
-	      )
 	    (when (minusp min-x)
 	      (incf (x d-o) (abs (* scale-x min-x))))
+
+	    (when (plusp min-x)
+	      (decf (x d-o) (* scale-x min-x)))
+	    
+
 	    (setf (data-origin graph) d-o)
 
 	    (when (or (y-axis chart) (x-axis chart))
