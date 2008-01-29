@@ -132,7 +132,6 @@ the Y axis")))
 			    (expt 10 
 				  (- (floor (log diff 10))
 				     1))))
-	 
 	 (current-x (x graph))
 	 (lst ()))
     ;;start drawing at 0, see how much we have
