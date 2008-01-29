@@ -40,9 +40,6 @@ fit nicely, but sometimes this goes awry." )
      (:ul
 	 (:li (vecto-link))))
 
-   (:p "The easiest way to install ADW-Charting and all its dependencies is "
-     (:a :href "http://www.cliki.net/asdf-install" "ASDF-Install"))
-
    (:p "ADW-Charting's function interface is similar to "
      (vecto-link)
      "'s interface: you
@@ -200,7 +197,8 @@ regarding ADW-Charting, please email "
 		      (make-section "Minimal Pie Chart" #'minimal-pie)
 		      (make-section "Minimal Line Chart" #'minimal-line)
 		      (make-section "Customized Line Chart" #'customized-line)
-		      (make-section "Boinkmark" #'boinkmark))
+		      (make-section "Boinkmark" #'boinkmark)
+		      (make-section "Stuart Mackey 1" #'stuart-mackey-1))
 	(make-section "Dictionary" #'dictionary
 		      (make-code "with-pie-chart" #'with-chart "Macro"
 				 '((width height &key (background '(1 1 1))) &body body))
@@ -212,7 +210,8 @@ regarding ADW-Charting, please email "
 				 '(label data &key (color nil)))
 		      (make-code "set-axis" #'set-axis "Function"
 				 '(axis title &key (draw-gridlines-p T)
-				   (label-formatter #'princ-to-string)))
+				   (label-formatter #'princ-to-string)
+				   (data-interval nil)))
 		      (make-code "save-file" #'save-file "Function"
 				 '(filename)
 				 '(truename)))
@@ -228,7 +227,11 @@ regarding ADW-Charting, please email "
     " must be either "
     (:tt ":x") " or " (:tt ":y") ".  The " (:tt "label-formatter")
     " must be either a format control string or a function of 1 argument that
-returns a string with the desired axis label."))
+returns a string with the desired axis label.  The axis printer will try to 
+pick decent intervals for labels, but it's still pretty dumb.  You can specify
+a data interval using the "
+    (:tt ":data-interval")
+    " parameter."))
 
 (defhtmlfun add-series ()
   (:blockquote "Add another series to the line chart.  "
@@ -269,44 +272,64 @@ dimensions as the target for chart commands, with the specified background."))
     (htm (:pre :style "height:310px"
 	       (:img :border 0 :align "right" :src (str filename))
 	       "(with-line-chart (400 300 :background '(.7 .5 .7))
-    (add-series \"A\" '((-.1 -.2) (0 .4) (.1 .5) (.4 .6) (.5 -.3))
-    (add-series \"B\" '((-.1 .4) (0 -.2) (.1 .6) (.5 -.2) (.6 .5))
-    (add-series \"C\" '((-.1 0) (0 .3) (.1 .1) (.2 .5) (.4 -.6))
+    (add-series \"A\" '((-.1 -.2) (0 .4) (.1 .5) (.4 .6) (.5 -.3)))
+    (add-series \"B\" '((-.1 .4) (0 -.2) (.1 .6) (.5 -.2) (.6 .5)))
+    (add-series \"C\"
+		'((-.1 0) (0 .3) (.1 .1) (.2 .5) (.4 -.6))
 		:color '(.3 .7 .9))
     (set-axis :y \"widgets\" :label-formatter \"~,2F\")
     (set-axis :x nil
 	      :draw-gridlines-p nil
 	      :label-formatter #'(lambda (v)
-                                   ;;could do something more interesting here
+				   ;;could do something more interesting here
 				   (format nil \"~,1F\" (expt 2 v))))
-    (save-file \"customized-line-chart.png\"))"))))
+    (save-file \"customized-line-chart.png\"))"
+	      ))))
 
 (defhtmlfun boinkmark ()
   (let ((filename (file-namestring
 		   (adw-charting-tests::boinkmark))))
     (htm (:pre :style "height:310px"
 	       (:img :border 0 :align "right" :src (str filename))
-	       "(with-line-chart (400 300)
-      (add-series \" baker: SBCL\"
-                  (loop for row in +boink-data+
-                        for i from 0
-                        collect (list i (nth 4 row))))
-      (set-axis :y \"seconds\"  :label-formatter \"~,2F\")
-      (set-axis :x nil
-                :draw-gridlines-p nil
-                :label-formatter #'(lambda (i)
-                                     (nth 3 (nth i +boink-data+))))
-      (save-file \"boink.png\")))"
+"(with-line-chart (400 300)
+    (add-series \"baker: SBCL\"
+		(loop for row in +boink-data+
+		      for i from 0
+		      collect (list i (nth 4 row))))
+    (set-axis :y \"seconds\" :label-formatter \"~,2F\")
+    (set-axis :x nil
+	      :draw-gridlines-p nil
+	      :label-formatter #'(lambda (i)
+				   (nth 3 (nth i +boink-data+))))
+    (save-file \"boink.png\"))"
+	      ))))
+
+(defhtmlfun stuart-mackey-1()
+  (let ((filename (file-namestring
+		   (adw-charting-tests::stuart-mackey-1))))
+    (htm (:pre :style "height:310px"
+	       (:img :border 0 :align "right" :src (str filename))
+"(with-line-chart (400 300)
+    (add-series \"test\" '((1 0.0) (2 2.0) (3 3.0) (4 1.5)) :color '(0 0 1))
+    (set-axis :y \"amount\" :label-formatter \"~,2f\")
+    (set-axis :x \"days\" :data-interval 1
+	      :draw-gridlines-p nil	   
+	      :label-formatter (lambda (v) (format nil \"~d\" (round v))))
+    (save-file \"stuart-mackey-1.png\"))"
+
+
 	      ))))
 
 (defhtmlfun add-slice ()
   (:blockquote "Adds a slice to the chart, with an optional color.  A color will
 be automatically assigned if none is specified."))
 
+
+
 (defun adw-charting-doc ()
   (let ((title "ADW-Charting - simple chart drawing with Common Lisp")
 	(canonical-url "http://common-lisp.net/project/adw-charting/")
-	(download-url "http://common-lisp.net/project/adw-charting/adw-charting.tgz")
+	(download-url "http://common-lisp.net/project/adw-charting/adw-charting.tar.gz")
 	(sections (get-sections))
 	(outfile (merge-pathnames *root* #P"./index.html")))
     (setf adw-charting-tests::*root* *root*)
@@ -338,8 +361,8 @@ non-Lisp libraries, it should work in any Common Lisp environment. ADW-Charting 
 available under a BSD-like license. The 'ADW' in the name is referencing my
 employer, "
 		(:a :href "http://www.acceleration.net" "Acceleration.net")
-		", who has sponsored much of this work.  The current version is 0.6,
-released on January 24th, 2008.")
+		", who has sponsored much of this work.  The current version is 0.7,
+released on January 28th, 2008.")
 	      (:p "The canonical location for ADW-Charting is "
 		(:a :href canonical-url (str canonical-url)))
 	      (:p :class "download" "Download shortcut:")
