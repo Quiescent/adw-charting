@@ -241,7 +241,7 @@ the Y axis")))
 	   (graph (make-instance 'graph-region 
 				 :x graph-margin
 				 :y (floor (+ legend-space graph-margin)) 
-				 :width (- width graph-margin graph-margin)
+				 :width (- width graph-margin graph-margin graph-margin)
 				 :height (- height graph-margin graph-margin 
 					    legend-space)
 				 :chart chart))
@@ -288,6 +288,7 @@ the Y axis")))
 	     (mapcan #'(lambda (series)
 			 (find-extremes (data series)))
 		     (chart-elements chart)))
+
 	  (setf (data-min graph) (make-point min-x min-y))
 	  (setf (data-max graph) (make-point max-x max-y))
 	  ;;adjust our graph region to account for labels
@@ -310,7 +311,7 @@ the Y axis")))
 		 (scale-x (/ (width graph) 
 			     (- max-x min-x)))
 		 (scale-y (/ (height graph)
-			     (* 1.1 (- max-y min-y)))))
+			     (* 1.1 (- max-y (min 0 min-y))))))
 	    (setf (data-scale graph) (make-point scale-x
 						 scale-y))
 	    ;;adjust the origins if we need to
@@ -325,7 +326,7 @@ the Y axis")))
 	      (decf (x d-o) (* scale-x min-x)))
 	    
 
-	    (setf (data-origin graph) d-o)
+	    (setf (data-origin graph) d-o)	    
 
 	    (when (or (y-axis chart) (x-axis chart))
 	      ;;set the drawing for grid-lines
