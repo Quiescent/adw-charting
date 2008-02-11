@@ -67,12 +67,6 @@ the Y axis")))
 (defclass graph-region (point area)
   ((chart :accessor chart
 	  :initarg :chart)
-   (data-origin :accessor data-origin
-		:initarg :data-origin
-		:initform nil)
-   (data-scale :accessor data-scale
-	       :initarg :data-scale
-	       :initform nil)
    (data-min :accessor data-min 
 	     :initform nil)
    (data-max :accessor data-max 
@@ -87,6 +81,36 @@ the Y axis")))
   (let ((offset (floor offset)))
     (incf (x gr) offset)
     (decf (width gr) offset)))
+
+(defmethod data-scale ((gr graph-region))
+  (with-accessors ((w width)
+		   (h height)
+		   (min data-min)
+		   (max data-max)) gr
+    (make-point (/ w
+		   (- (x max) (x min)))
+		(/ h
+		   (* 1.1 (- (y max) (min 0 (y min))))))))
+
+(defmethod data-origin ((graph graph-region))
+  (with-accessors ((x x)
+		   (y y)
+		   (d-s data-scale)
+		   (min data-min)
+		   (max data-max)) graph
+  (let ((d-o (make-point x y)))
+    
+    ;;adjust the origins if we need to
+    
+    (when (minusp (y min))
+      (incf (y d-o) (abs (* (y d-s) (y min)))))
+    
+    (when (minusp (x min))
+      (incf (x d-o) (abs (* (x d-s) (x min)))))
+    
+    (when (plusp (x min))
+      (decf (x d-o) (* (x d-s) (x min))))
+    d-o)))
 
 (defun find-extremes (data)
   "takes a list of (x y) pairs, and returns the ((x-min y-min) (x-max y-max))"
@@ -154,7 +178,7 @@ the Y axis")))
 	 (lst ()))
     ;;start drawing at 0, see how much we have
     (loop for x = min-x then (+ x data-interval)
-	  for gx = (round (first (dp->gp graph x 0)))
+	  for gx = (round (x (dp->gp graph x 0)))
 	  until (> x max-x)
 	  do (when (<= current-x gx)
 	       ;;record + increment current-x
@@ -185,14 +209,14 @@ the Y axis")))
     (loop for (txt gp) in
 	  (nconc
 	   (loop for y = 0 then (+ y data-interval)
-		 for gy = (second (dp->gp graph 0 y))
+		 for gy = (y (dp->gp graph 0 y))
 		 until (> gy (+ (height graph) (y graph)))
 		 collect (list (axis-label axis y)
 			       gy))
 	   (loop for y = (- data-interval) then (- y data-interval)
 		 until (< y min-y)
 		 collect (list (axis-label axis y) 
-			       (second (dp->gp graph 0 y)))))
+			       (y (dp->gp graph 0 y)))))
 	  collect (list txt y-axis-labels-x gp)
 	  
 	  )))
@@ -218,18 +242,22 @@ the Y axis")))
 
 
 (defmethod dp->gp ((graph graph-region) x y)
-  "convert a point from data space to graph space"  
-  (list (+ (x (data-origin graph)) 
-	   (* (x (data-scale graph)) x))
-	(+ (y (data-origin graph)) 
-	   (* (y (data-scale graph)) y))))
+  "convert a point from data space to graph space"
+  (with-accessors ((d-o data-origin)
+		   (d-s data-scale)) graph
+    (make-point (+ (x d-o) 
+		   (* (x d-s) x))
+		(+ (y d-o) 
+		   (* (y d-s) y)))))
 
 (defmethod gp->dp ((graph graph-region) x y)
   "convert a point from graph space to data space"
-  (list (/ (- x (x (data-origin graph))) 
-	   (x (data-scale graph)))
-	(/ (- y (y (data-origin graph))) 
-	   (y (data-scale graph)))))
+  (with-accessors ((d-o data-origin)
+		   (d-s data-scale)) graph
+    (make-point (/ (- x (x d-o)) 
+		   (x d-s))
+		(/ (- y (y d-o)) 
+		   (y d-s)))))
 
 (defmethod draw-chart ((chart line-chart))
   (with-font ()
@@ -295,10 +323,10 @@ the Y axis")))
 	  ;;adjust our graph region to account for labels
 	  (when-let (axis (y-axis chart))
 	    (let* ((text-width (loop for y in (list min-y max-y)
-				     maximizing (font-width chart
-							    (axis-label axis y)) 
-				     into longest
-				     finally (return longest)))
+				  maximizing (font-width chart
+							 (axis-label axis y)) 
+				  into longest
+				  finally (return longest)))
 		   (offset (+ text-width
 			      (* text-height (if (label axis)
 						 3
@@ -307,57 +335,34 @@ the Y axis")))
 	      (setf y-axis-labels-x (- (x graph) graph-margin text-width))))
 
 	  (draw-graph-area graph)
-	
-	  (let* ((d-o (make-point (x graph) (y graph)))
-		 (scale-x (/ (width graph) 
-			     (- max-x min-x)))
-		 (scale-y (/ (height graph)
-			     (* 1.1 (- max-y (min 0 min-y))))))
-	    (setf (data-scale graph) (make-point scale-x
-						 scale-y))
-	    ;;adjust the origins if we need to
 
-	    (when (minusp min-y)
-	      (incf (y d-o) (abs (* scale-y min-y))))
-
-	    (when (minusp min-x)
-	      (incf (x d-o) (abs (* scale-x min-x))))
-
-	    (when (plusp min-x)
-	      (decf (x d-o) (* scale-x min-x)))
-	    
-
-	    (setf (data-origin graph) d-o)	    
-
-	    (when (or (y-axis chart) (x-axis chart))
-	      ;;set the drawing for grid-lines
-	      (with-graphics-state
-		(set-line-width 1)
-		(set-stroke (background chart))
-		(set-dash-pattern #(10 2) 0)
-
-		(draw-axes graph y-axis-labels-x 
-			   text-height
-			   x-axis-labels-y)))
-
-	    ;;draw the 0 line
-	    (apply #'move-to (dp->gp graph min-x 0))
-	    (apply #'line-to (dp->gp graph max-x 0))
-	    (set-rgb-stroke 0 0 0)
-	    (stroke)
-
-	    ;;TODO: make this a property of the series
+	  (when (or (y-axis chart) (x-axis chart))
+	    ;;set the drawing for grid-lines
 	    (with-graphics-state
-	      (set-line-width 2)		
-	      (dolist (series (chart-elements chart))
-		(set-stroke series)
-		(loop for (x y) in (data series)
-		      for firstp = T then nil
-		      do (apply (if firstp #'move-to #'line-to)
-				(dp->gp graph x y)))
-		(stroke)))
-	    (draw-graph-area graph T)
-	    ))))))
+	      (set-line-width 1)
+	      (set-stroke (background chart))
+	      (set-dash-pattern #(10 2) 0)
+
+	      (draw-axes graph y-axis-labels-x 
+			 text-height
+			 x-axis-labels-y)))
+
+	  ;;TODO: make this a property of the series
+	  (draw-series chart graph)
+	  (draw-graph-area graph T))))))
+
+(defgeneric draw-series (chart graph))
+
+(defmethod draw-series ((chart line-chart) graph)
+  (with-graphics-state
+    (set-line-width 2)
+    (dolist (series (chart-elements chart))
+      (set-stroke series)
+      (loop for (x y) in (data series)
+	 for firstp = T then nil
+	 do (funcall (if firstp #'move #'line)
+		   (dp->gp graph x y)))
+      (stroke))))
 
 (defmethod translate-to-next-label ((chart line-chart) w h)
   "moves the cursor right to the next legend position"

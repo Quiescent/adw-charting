@@ -59,6 +59,17 @@
    (y :accessor y
       :initarg :y)))
 
+(defmethod x ((lst list))
+  (first lst))
+(defmethod y ((lst list))
+  (second lst))
+
+(defmethod move ((p point))
+  (move-to (x p) (y p)))
+
+(defmethod line ((p point))
+  (line-to (x p) (y p)))
+
 (defmethod clone ((p point))
   (make-instance 'point 
 		 :x (x p)
