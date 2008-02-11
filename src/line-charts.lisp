@@ -233,6 +233,7 @@ the Y axis")))
 
 (defmethod draw-chart ((chart line-chart))
   (with-font ()
+
     (let* ((width (width chart))
 	   (height (height chart))
 	   (graph-margin (margin chart))

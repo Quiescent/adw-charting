@@ -64,8 +64,7 @@
 		 :x (x p)
 		 :y (y p)))
 (defun make-point (x y)
-  (make-instance 'point :x x :y y)
-  )
+  (make-instance 'point :x x :y y))
 
 (defclass chart (area)
   ((label-size :accessor label-size
@@ -124,7 +123,6 @@ specified in the chart's label-size"
   (if-let (color (slot-value item 'color))
 	  color
 	  (let ((c (pop *color-stack*)))
-
 	    (setf *color-stack* (nconc *color-stack*				       
 				       (list (mapcar #'(lambda (x)
 						   (/ (+ (if (eq 1 x)
