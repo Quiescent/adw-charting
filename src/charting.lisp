@@ -184,8 +184,8 @@ place a label should go")
     (with-font ()
       (let* ((elems (chart-elements chart))
 	     (text-height (font-height chart))
-	     (box-size (* 3 text-height))
-	     (label-spacing (/ box-size 2)))
+	     (box-size (* 2 text-height))
+	     (label-spacing (/ text-height 2)))
 	(set-font *font* (label-size chart)) ;set the font
 	(set-rgb-fill 0 0 0)		;text should be black
 	(apply #'translate (legend-start-coords chart box-size label-spacing))
@@ -193,7 +193,7 @@ place a label should go")
 	  ;;translate the origin to the next label
 	  (with-graphics-state
 	    (set-fill (color elem))
-	    (rounded-rectangle 0 0 box-size box-size text-height text-height)
+	    (rounded-rectangle 0 label-spacing box-size box-size label-spacing text-height)
 	    (fill-and-stroke))
 	  (draw-string (+ box-size label-spacing)
 		       text-height
