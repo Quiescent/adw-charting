@@ -189,7 +189,7 @@ place a label should go")
 	(set-font *font* (label-size chart)) ;set the font
 	(set-rgb-fill 0 0 0)		;text should be black
 	(apply #'translate (legend-start-coords chart box-size label-spacing))
-	(dolist (elem (reverse elems))
+	(dolist (elem elems)
 	  ;;translate the origin to the next label
 	  (with-graphics-state
 	    (set-fill (color elem))
@@ -206,6 +206,7 @@ place a label should go")
 (defun save-file (filename)
   "saves the *current-chart* to the given file."
   (with-canvas (:width (width *current-chart*) :height (height *current-chart*))
+    (setf (chart-elements *current-chart*) (reverse (chart-elements *current-chart*)) )
     (%render-chart)
     (save-png filename)))
 
