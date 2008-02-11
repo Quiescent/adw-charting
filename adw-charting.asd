@@ -35,7 +35,8 @@
 				     (:file "utils" :depends-on ("packages"))
 				     (:file "charting" :depends-on ("utils"))
 				     (:file "pie-charts" :depends-on ("charting"))
-				     (:file "line-charts" :depends-on ("charting"))))
+				     (:file "line-charts" :depends-on ("charting"))
+				     (:file "bar-charts" :depends-on ("line-charts"))))
 	       (:module :test
 			:depends-on (:src)
 			:components ((:file "lisp-unit")

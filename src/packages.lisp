@@ -31,4 +31,6 @@
        :with-line-chart
        :add-series
        :set-axis
+       ;;bar-chart related
+       :with-bar-chart
     ))
