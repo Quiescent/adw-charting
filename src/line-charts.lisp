@@ -21,7 +21,11 @@
 (defclass series (chart-element)
   ((data :accessor data
 	 :initarg :data
-	 :documentation "a list of (x y) pairs (as lists, not cons cells)"))  
+	 :documentation "a list of (x y) pairs (as lists, not cons cells)")
+   (mode :accessor mode
+	 :initarg :mode
+	 :initform 'default
+	 :documentation "a flag for how to render this series"))  
   (:documentation "represents a line on a line chart"))
 
 (defclass axis ()
@@ -366,16 +370,19 @@ the Y axis")))
 
 (defgeneric draw-series (chart graph))
 
-(defmethod draw-series ((chart line-chart) graph)
+(defmethod draw-series ((chart line-chart) graph) 
+  (dolist (series (chart-elements chart))
+    (draw-line-series series graph)))
+
+(defun draw-line-series (series graph)
   (with-graphics-state
     (set-line-width 2)
-    (dolist (series (chart-elements chart))
-      (set-stroke series)
-      (loop for (x y) in (data series)
-	 for firstp = T then nil
-	 do (funcall (if firstp #'move #'line)
-		   (dp->gp graph x y)))
-      (stroke))))
+    (set-stroke series)
+    (loop for (x y) in (data series)
+	  for firstp = T then nil
+	  do (funcall (if firstp #'move #'line)
+		      (dp->gp graph x y)))
+    (stroke)))
 
 (defmethod translate-to-next-label ((chart line-chart) w h)
   "moves the cursor right to the next legend position"
@@ -396,9 +403,9 @@ dimensions as the target for chart commands, with the specified background."
 					  :background ,background)))
     ,@body))
 
-(defun add-series (label data &key (color nil))
+(defun add-series (label data &key (color nil) (mode 'default))
   "adds a series to the *current-chart*."
-  (push (make-instance 'series :label label :data data :color color)
+  (push (make-instance 'series :label label :data data :color color :mode mode)
 	(chart-elements *current-chart*)))
 
 (defun set-axis (axis title &key (draw-gridlines-p T) 

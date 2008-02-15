@@ -36,15 +36,21 @@
     (fill-path)))
 
 (defmethod draw-series ((chart bar-chart) graph)
+  (let ((bars-drawn (make-hash-table)))
+    (dolist (series (chart-elements chart))
+      (if (eq (mode series) 'default)
+	  (draw-bar-series series graph bars-drawn chart)
+	  (draw-line-series series graph)))))
+
+(defun draw-bar-series (series graph bars-drawn chart)
   (decf (width graph) (* 2(bar-width chart)))
-  (let ((bars-drawn (make-hash-table)))    
-    (with-graphics-state
-      (set-line-width 2)
-      (dolist (series (chart-elements chart))
-	(set-fill series)
-	(loop for (x y) in (data series)
-	   do (draw-bar x y (gethash x bars-drawn 0) chart graph )
-	   (incf (gethash x bars-drawn 0))))))
+  (with-graphics-state
+    (set-line-width 2)
+    (set-fill series)
+    (loop for (x y) in (data series)
+	  do (draw-bar x y (gethash x bars-drawn 0) chart graph )
+	  (incf (gethash x bars-drawn 0)))
+    )
   (incf (width graph) (* 2 (bar-width chart))))
 
 (defmacro with-bar-chart ((width height &key (background ''(1 1 1))) &body body)
