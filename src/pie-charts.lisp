@@ -45,7 +45,7 @@
 
 (defmethod legend-start-coords ((chart pie-chart) box-size label-spacing)
   (list (* 2 (+ (radius chart) (margin chart)))
-	(- (height chart) box-size label-spacing)))
+	(- (height chart) box-size box-size label-spacing)))
 
 (defmethod has-data-p ((chart pie-chart))
   (chart-elements chart))
