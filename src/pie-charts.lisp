@@ -97,7 +97,7 @@
 			     (if (>= y cy)
 				 (height chart)
 				 0))
-		    ;;if we cross from E to W, go up to the NW corner first
+		    ;;if we cross from NE to NW, go up to the NW corner first
 		    (when (and (>= x cx)
 			       (>= y cy)
 			       (< (/ pi 4) segment))
@@ -108,10 +108,13 @@
 			       (>= endx cx))
 		      (line-to (width chart) 0))
 		    
-		    ;;if we cross from top to bottom, go down to the SW corner
+		    ;;if we cross from N to S, go down to the SW corner
 		    (when (and (>= y cy)
 			       (< endy cy))
-		      (line-to 0 0))
+		      (line-to 0 0)
+		      ;;if we cross from SE to SW, so to SE corner		      
+		      (when (> endx cx )
+			(line-to (width chart) 0)))	    
 		    
 		    ;;now to our end point
 		    (line-to endx endy)
