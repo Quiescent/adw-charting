@@ -36,7 +36,7 @@
     (fill-path)))
 
 (defmethod draw-series ((chart bar-chart) graph)
-  (decf (width graph) (bar-width chart))
+  (decf (width graph) (* 2(bar-width chart)))
   (let ((bars-drawn (make-hash-table)))    
     (with-graphics-state
       (set-line-width 2)
@@ -45,7 +45,7 @@
 	(loop for (x y) in (data series)
 	   do (draw-bar x y (gethash x bars-drawn 0) chart graph )
 	   (incf (gethash x bars-drawn 0))))))
-  (incf (width graph) (bar-width chart)))
+  (incf (width graph) (* 2 (bar-width chart))))
 
 (defmacro with-bar-chart ((width height &key (background ''(1 1 1))) &body body)
   "Evaluates body with a chart established with the specified
