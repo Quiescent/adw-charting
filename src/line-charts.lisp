@@ -43,6 +43,9 @@ across the chart")
    (data-interval :accessor data-interval
 		  :initarg :data-interval
 		  :initform nil)
+   (draw-zero-p :accessor draw-zero-p
+		:initarg :draw-zero-p
+		:documentation "Should we draw a line along the 0 of this axis?")
    (mode :accessor mode
 	 :initarg :mode)
    (angle :accessor angle
@@ -130,33 +133,48 @@ the Y axis")))
   "draws the axes"
   (macrolet ((draw-gridline ((axis) &body gridline)
 	       `(when (draw-gridlines-p ,axis)
-		 ,@gridline
-		 (stroke))))
+		 (with-graphics-state
+		   (set-line-width 1)
+		   (set-stroke (background (chart graph)))
+		   (set-dash-pattern #(10 2) 0)
+		   ,@gridline
+		   (stroke)))))
 
     (when-let (axis (y-axis (chart graph)))
-	(loop for (txt x y) in 
-	      (calculate-y-axes graph text-height y-axis-labels-x)
-	      do (let ((half-text (/ text-height 2)))
+      (loop for (txt x y) in 
+	    (calculate-y-axes graph text-height y-axis-labels-x)
+	    do (let ((half-text (/ text-height 2)))
 
-		   (draw-string x (- y half-text) txt)
-		   (draw-gridline (axis)
-				  (move-to (x graph) y)
-				  (line-to (+ (x graph) 
-					      (width graph)) 
-					   y)))))
+		 (draw-string x (- y half-text) txt)
+		 (draw-gridline (axis)
+				(move-to (x graph) y)
+				(line-to (+ (x graph) 
+					    (width graph)) 
+					 y))))
+      (when (draw-zero-p axis)
+	(with-graphics-state
+	  (set-line-width 2)
+	  (set-rgb-stroke 0 0 0)
+	  (move (dp->gp graph (x (data-min graph)) 0))
+	  (line (dp->gp graph (x (data-max graph)) 0))
+	  (stroke))))
 
-      (when-let (axis (x-axis (chart graph)))
-	
-	(loop for (txt x) in (calculate-x-axes graph)
-	      do (progn
-		   (draw-centered-string x  
-				x-axis-labels-y txt)
-		   (draw-gridline (axis)
-				  (move-to x (y graph))
-				  (line-to x
-					   (+ (y graph) (height graph))))))
-
-	))) 
+    (when-let (axis (x-axis (chart graph)))
+      (loop for (txt x) in (calculate-x-axes graph)
+	    do (progn
+		 (draw-centered-string x  
+				       x-axis-labels-y txt)
+		 (draw-gridline (axis)
+				(move-to x (y graph))
+				(line-to x
+					 (+ (y graph) (height graph))))))
+      (when (draw-zero-p axis)
+	(with-graphics-state
+	  (set-line-width 2)
+	  (set-rgb-stroke 0 0 0)
+	  (move (dp->gp graph 0 (y (data-min graph))))
+	  (line (dp->gp graph 0 (y (data-max graph))))
+	  (stroke)))))) 
 
 (defun calculate-x-axes (graph)
   (let ((axis (x-axis (chart graph))))  
@@ -337,15 +355,10 @@ the Y axis")))
 	  (draw-graph-area graph)
 
 	  (when (or (y-axis chart) (x-axis chart))
-	    ;;set the drawing for grid-lines
-	    (with-graphics-state
-	      (set-line-width 1)
-	      (set-stroke (background chart))
-	      (set-dash-pattern #(10 2) 0)
-
-	      (draw-axes graph y-axis-labels-x 
-			 text-height
-			 x-axis-labels-y)))
+	    ;;set the drawing for grid-lines 
+	    (draw-axes graph y-axis-labels-x 
+		       text-height
+		       x-axis-labels-y))
 
 	  ;;TODO: make this a property of the series
 	  (draw-series chart graph)
@@ -392,6 +405,7 @@ dimensions as the target for chart commands, with the specified background."
 		 (label-formatter #'princ-to-string)
 		 (mode :value)
 		 (data-interval nil)
+		 (draw-zero-p nil)
 		 (angle nil))
   "set the axis on the *current-chart*.  axis is either :x or :y.
 label-formatter is either a format-compatible control string or
@@ -401,6 +415,7 @@ a function of 1 argument to control label formatting"
 			   :draw-gridlines-p draw-gridlines-p
 			   :mode mode
 			   :angle angle
+			   :draw-zero-p draw-zero-p
 			   :data-interval data-interval
 			   :label-formatter (etypecase label-formatter
 					      (string #'(lambda (v)
