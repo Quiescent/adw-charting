@@ -203,12 +203,19 @@ place a label should go")
 				      (font-width chart (label elem)))
 				   (+ box-size label-spacing)))))))
 
-(defun save-file (filename)
-  "saves the *current-chart* to the given file."
-  (with-canvas (:width (width *current-chart*) :height (height *current-chart*))
-    (setf (chart-elements *current-chart*) (reverse (chart-elements *current-chart*)) )
+(defmethod save-chart-to-file (filename (chart chart))
+  "saves the chart to the file"
+  (with-canvas (:width (width chart)
+		       :height (height chart))
+    (setf (chart-elements chart)
+	  (reverse (chart-elements chart)) )
     (%render-chart)
     (save-png filename)))
+
+(defun save-file (filename)
+  "saves the *current-chart* to the given file."
+  (save-chart-to-file filename *current-chart*))
+
 
 (defun save-stream (stream)
   "saves the *current-chart* to the given stream."
