@@ -33,4 +33,6 @@
        :set-axis
        ;;bar-chart related
        :with-bar-chart
+       ;;new google charts
+       :with-gchart
     ))

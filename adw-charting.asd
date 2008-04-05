@@ -29,14 +29,15 @@
   :author "Ryan Davis <ryan@acceleration.net>"
   :licence "LGPL (or talk to me)"
   :version "0.2"
-  :depends-on (#:vecto)
+  :depends-on (#:vecto #:drakma)
   :components ((:module :src
 			:components ((:file "packages")
 				     (:file "utils" :depends-on ("packages"))
 				     (:file "charting" :depends-on ("utils"))
 				     (:file "pie-charts" :depends-on ("charting"))
 				     (:file "line-charts" :depends-on ("charting"))
-				     (:file "bar-charts" :depends-on ("line-charts"))))
+				     (:file "bar-charts" :depends-on ("line-charts"))
+				     (:file "gchart":depends-on ("pie-charts"))))
 	       (:module :test
 			:depends-on (:src)
 			:components ((:file "lisp-unit")
