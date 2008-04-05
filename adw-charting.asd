@@ -41,5 +41,4 @@
 			:depends-on (:src)
 			:components ((:file "lisp-unit")
 				     (:file "test-package" :depends-on ("lisp-unit"))
-				     (:file "examples" :depends-on ("test-package"))
 				     (:file "tests" :depends-on ("test-package"))))))

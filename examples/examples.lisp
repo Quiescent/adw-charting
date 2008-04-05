@@ -16,47 +16,46 @@
 ;; TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 ;; SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-(in-package :adw-charting-tests)
+(defpackage #:net.acceleration.adw-charting-examples
+  (:use #:cl))
 
-(defvar *root* (asdf:component-pathname
-		(asdf:find-system :adw-charting)))
+(in-package #:net.acceleration.adw-charting-examples)
 
 (defun minimal-pie-chart ()  
-  (with-pie-chart (300 200)
-    (add-slice "A" 5.0d0)
-    (add-slice "B" 2.0d0)
-    (save-file (merge-pathnames *root* "minimal-pie-chart.png"))))
+  (adw-charting:with-pie-chart (300 200)
+    (adw-charting:add-slice "A" 5.0d0)
+    (adw-charting:add-slice "B" 2.0d0)
+    (adw-charting:save-file "minimal-pie-chart.png")))
 
 (defun bigger-pie-chart ()  
-  (with-pie-chart (300 200)
+  (adw-charting:with-pie-chart (300 200)
     (loop for (label value) in '(("A" 400)
 				 ("B" 217)
 				 ("C" 212.5)
 				 ("D" 350)
 				 ("E" 1000))
-	  do (add-slice label value))
-    (save-file (merge-pathnames *root* "bigger-pie-chart.png"))))
+	  do (adw-charting:add-slice label value))
+    (adw-charting:save-file "bigger-pie-chart.png")))
 
 (defun minimal-line-chart ()
-  (with-line-chart (400 300)
-    (add-series "A" '((-1 -2) (0 4) (1 5) (4 6) (5 -3)))
-    (add-series "B" '((-1 4) (0 -2) (1 6) (5 -2) (6 5)))
-    (save-file (merge-pathnames *root* "minimal-line-chart.png"))))
+  (adw-charting:with-line-chart (400 300)
+    (adw-charting:add-series "A" '((-1 -2) (0 4) (1 5) (4 6) (5 -3)))
+    (adw-charting:add-series "B" '((-1 4) (0 -2) (1 6) (5 -2) (6 5)))
+    (adw-charting:save-file "minimal-line-chart.png")))
 
 (defun customized-line-chart ()
-  (with-line-chart (400 300 :background '(.7 .5 .7))
-    (add-series "A" '((-.1 -.2) (0 .4) (.1 .5) (.4 .6) (.5 -.3)))
-    (add-series "B" '((-.1 .4) (0 -.2) (.1 .6) (.5 -.2) (.6 .5)))
-    (add-series "C"
-		'((-.1 0) (0 .3) (.1 .1) (.2 .5) (.4 -.6))
+  (adw-charting:with-line-chart (400 300 :background '(.7 .5 .7))
+    (adw-charting:add-series "A" '((-.1 -.2) (0 .4) (.1 .5) (.4 .6) (.5 -.3)))
+    (adw-charting:add-series "B" '((-.1 .4) (0 -.2) (.1 .6) (.5 -.2) (.6 .5)))
+    (adw-charting:add-series "C" '((-.1 0) (0 .3) (.1 .1) (.2 .5) (.4 -.6))
 		:color '(.3 .7 .9))
-    (set-axis :y "widgets" :label-formatter "~,2F")
-    (set-axis :x nil
+    (adw-charting:set-axis :y "widgets" :label-formatter "~,2F")
+    (adw-charting:set-axis :x nil
 	      :draw-gridlines-p nil
 	      :label-formatter #'(lambda (v)
 				   ;;could do something more interesting here
 				   (format nil "~,1F" (expt 2 v))))
-    (save-file (merge-pathnames *root* "customized-line-chart.png"))))
+    (adw-charting:save-file "customized-line-chart.png")))
 
 (defvar +boink-data+ '((3220487700 "baker" "SBCL,(:ARCH :EMULATED-X86 :FEATURES NIL)" "0.7.0"
                  9.179666666666666d0 0.039405685894399696d0)
@@ -196,25 +195,55 @@
                  0.6656666666666667d0 0.008647414514048853d0)))
 
 (defun boinkmark ()
-  (with-line-chart (400 300)
-    (add-series "baker: SBCL"
+  (adw-charting:with-line-chart (400 300)
+    (adw-charting:add-series "baker: SBCL"
 		(loop for row in +boink-data+
 		      for i from 0
 		      collect (list i (nth 4 row))))
-    (set-axis :y "seconds" :label-formatter "~,2F")
-    (set-axis :x nil
+    (adw-charting:set-axis :y "seconds" :label-formatter "~,2F")
+    (adw-charting:set-axis :x nil
 	      :draw-gridlines-p nil
 	      :label-formatter #'(lambda (i)
 				   (nth 3 (nth i +boink-data+))))
-    (save-file (merge-pathnames *root* "boink.png"))))
+    (adw-charting:save-file "boink.png")))
 
 (defun stuart-mackey-1 ()
-  (with-line-chart (400 300)
-    (add-series "test" '((1 0.0) (2 2.0) (3 3.0) (4 1.5)) :color '(0 0 1))
-    (set-axis :y "amount" :label-formatter "~,2f")
-    (set-axis :x "days" :data-interval 1
+  (adw-charting:with-line-chart (400 300)
+    (adw-charting:add-series "test" '((1 0.0) (2 2.0) (3 3.0) (4 1.5)) :color '(0 0 1))
+    (adw-charting:set-axis :y "amount" :label-formatter "~,2f")
+    (adw-charting:set-axis :x "days" :data-interval 1
 	      :draw-gridlines-p nil	   
 	      :label-formatter (lambda (v) (format nil "~d" (round v))))
-    (save-file (merge-pathnames *root* "stuart-mackey-1.png"))))
+    (adw-charting:save-file "stuart-mackey-1.png")))
 
+(defun random-between (min max)
+  (+ min
+     (random (float (- max min)))))
 
+(defun random-point (min-x min-y max-x max-y)
+  (list (random-between min-x max-x)
+	(random-between min-y max-y)))
+
+(defun random-series (n min-x min-y max-x max-y)
+  (sort 
+   (loop for i from 1 to n
+      collect (random-point min-x min-y max-x max-y))
+   #'< :key #'first))
+
+(defun mixed-mode ()
+  "uses the :mode argument to add-series to mix different types of charts"
+  (adw-charting:with-line-chart (400 300)
+    (adw-charting:add-series "line" (random-series 20 0 -10 20 10))
+
+    (adw-charting:set-axis :y "foos" :label-formatter "~,2f")
+    (adw-charting:set-axis :x "bars"
+			   :label-formatter "~,2f"
+			   :draw-gridlines-p nil)
+    (adw-charting:save-file "mixed-mode.png")))
+
+(defun pie-gchart ()
+  (adw-charting::with-gchart (:pie-3d 400 200)
+    (adw-charting:add-slice "foo" 10d0)
+    (adw-charting:add-slice "bar" 10d0)
+    (adw-charting:add-slice "baz" 20d0)
+    (adw-charting:save-file "pie-gchart.png")))
