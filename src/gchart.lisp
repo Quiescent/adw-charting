@@ -32,6 +32,7 @@
 (defparameter +google-chart-url+ "http://chart.apis.google.com/chart")
 
 (defmethod single-dataset-p ((chart gchart))
+  "does this chart have a single dataset, or many?"
   (member (chart-type chart) '(:pie :pie-3d)))
 
 (defmethod build-data ((chart gchart))
@@ -67,6 +68,7 @@
        collect (list exes wyes))))
 
 (defmethod build-labels ((chart gchart))
+  "helper to build the list of labels"
   (format nil "~{~a~^|~}"
 	  (mapcar #'label
 		  (chart-elements chart))))
@@ -128,6 +130,7 @@ it should be rendering"
 				       drakma:*drakma-default-external-format*))
 
 (defmacro with-gchart ((type width height) &body body)
+  "creates a new context with a gchart of the given type, width, and height."
   `(let ((*current-chart*
 	  (make-instance 'gchart
 			 :chart-type ,type
