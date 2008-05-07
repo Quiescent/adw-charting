@@ -40,8 +40,7 @@
   (case (chart-type chart)
 	((:pie :pie-3d) (format nil
 				"t:~{~F~^,~}"
-				(mapcar #'value
-					(chart-elements chart))))
+				(normalize-elements chart)))
 	(:line
 	 ;;pairs of X | Y, normalized to
 	 (format nil "t:~{~a~^|~}"
@@ -53,6 +52,13 @@
 (defun interpolate (min max val)
   (* 100 (/ (- val min)
 	    (- max min))))
+
+(defun normalize-elements (chart)
+  (let ((sum (reduce #'+
+		     (chart-elements chart)
+		     :key #'value)))
+    (loop for elem in (chart-elements chart)
+	  collect (/ (value elem) sum))))
 
 (defun normalized-series (chart)
   (destructuring-bind ((min-x min-y) (max-x max-y))
@@ -94,6 +100,7 @@
 				   *chart-types*)))
 		  (:chd (build-data chart))))
 
+(defparameter +chart-features+ '(:label :transparent-background :label-percentages))
 
 (defgeneric add-feature (feature-name))
 
@@ -102,6 +109,25 @@
 				   ((:pie :pie-3d) "chl")
 				   (:line "chdl"))
 		 (build-labels *current-chart*)))
+
+(defmethod add-feature ((feature-name (eql :transparent-background)))
+  (set-parameter *current-chart*
+		 :chf
+		 "bg,s,00000000"))
+
+(defmethod add-feature ((feature-name (eql :label-percentages)))
+  (loop for elem in (chart-elements *current-chart*)
+	for normalized in (normalize-elements *current-chart*)
+	do
+	(setf (label elem)
+	      (format nil "~a - ~,2F%" (label elem) (* 100 normalized))))
+  (add-feature :label))
+
+
+(defmethod add-title (title)
+  (set-parameter *current-chart*
+		 :chtt
+		 title))
 
 (defun add-features (&rest names)
   (mapc #'add-feature names))

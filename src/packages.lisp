@@ -38,4 +38,5 @@
        :chart-url
        :add-feature
        :add-features
+       :add-title
     ))
