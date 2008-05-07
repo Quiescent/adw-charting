@@ -126,8 +126,14 @@ it should be rendering"
     (truename filename)))
 
 (defun chart-url ()
-  (drakma::alist-to-url-encoded-string (build-parameters *current-chart*)
-				       drakma:*drakma-default-external-format*))
+  (ensure-default-parameters *current-chart*)
+  "returns the URL for the current google chart"
+  (concatenate 'string
+	       +google-chart-url+
+	       "?"
+	       (drakma::alist-to-url-encoded-string
+		(build-parameters *current-chart*)
+		drakma:*drakma-default-external-format*)))
 
 (defmacro with-gchart ((type width height) &body body)
   "creates a new context with a gchart of the given type, width, and height."
