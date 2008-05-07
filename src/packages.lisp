@@ -35,4 +35,5 @@
        :with-bar-chart
        ;;new google charts
        :with-gchart
+       :chart-url
     ))

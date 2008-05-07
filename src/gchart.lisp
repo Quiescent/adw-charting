@@ -62,6 +62,9 @@ it should be rendering"
 		     :parameters (build-parameters chart))
 		    dst)))
 
+(defun chart-url ()
+  (drakma::alist-to-url-encoded-string (build-parameters *current-chart*)
+				       drakma:*drakma-default-external-format*))
 
 (defmacro with-gchart ((type width height) &body body)
   `(let ((*current-chart*
