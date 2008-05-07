@@ -119,6 +119,12 @@ the Y axis")))
       (decf (x d-o) (* (x d-s) (x min))))
     d-o)))
 
+(defun find-chart-extremes (chart)
+  (find-extremes
+   (mapcan #'(lambda (series)
+	       (find-extremes (data series)))
+	   (chart-elements chart))))
+
 (defun find-extremes (data)
   "takes a list of (x y) pairs, and returns the ((x-min y-min) (x-max y-max))"
   (loop for (x y) in data
@@ -335,11 +341,8 @@ the Y axis")))
 	;;figure out the right scaling factors so we fill the graph    
 					;find the min/max x/y across all series
 	(destructuring-bind ((min-x min-y) (max-x max-y))
-	    (find-extremes
-	     (mapcan #'(lambda (series)
-			 (find-extremes (data series)))
-		     (chart-elements chart)))
-
+	    (find-chart-extremes chart)
+	  
 	  (setf (data-min graph) (make-point min-x min-y))
 	  (setf (data-max graph) (make-point max-x max-y))
 	  ;;adjust our graph region to account for labels
