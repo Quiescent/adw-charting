@@ -120,7 +120,8 @@ it should be rendering"
     (write-sequence (drakma:http-request
 		     +google-chart-url+
 		     :parameters (build-parameters chart))
-		    dst)))
+		    dst)
+    (truename filename)))
 
 (defun chart-url ()
   (drakma::alist-to-url-encoded-string (build-parameters *current-chart*)
