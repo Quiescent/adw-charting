@@ -25,6 +25,8 @@
 (defvar *chart-types* '((:pie . "p")
 			(:pie-3d . "p3")))
 
+(defparameter +google-chart-url+ "http://chart.apis.google.com/chart")
+
 (defmethod single-dataset-p ((chart gchart))
   (member (chart-type chart) '(:pie :pie-3d)))
 
@@ -56,7 +58,7 @@ it should be rendering"
 		     :if-does-not-exist :create
 		     :if-exists :supersede)
     (write-sequence (drakma:http-request
-		     "http://chart.apis.google.com/chart"
+		     +google-chart-url+
 		     :parameters (build-parameters chart))
 		    dst)))
 
