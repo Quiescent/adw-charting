@@ -36,4 +36,6 @@
        ;;new google charts
        :with-gchart
        :chart-url
+       :add-feature
+       :add-features
     ))
