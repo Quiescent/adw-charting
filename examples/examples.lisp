@@ -17,45 +17,45 @@
 ;; SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 (defpackage #:net.acceleration.adw-charting-examples
-  (:use #:cl))
+  (:use #:cl #:adw-charting))
 
 (in-package #:net.acceleration.adw-charting-examples)
 
 (defun minimal-pie-chart ()  
-  (adw-charting:with-pie-chart (300 200)
-    (adw-charting:add-slice "A" 5.0d0)
-    (adw-charting:add-slice "B" 2.0d0)
-    (adw-charting:save-file "minimal-pie-chart.png")))
+  (with-pie-chart (300 200)
+    (add-slice "A" 5.0d0)
+    (add-slice "B" 2.0d0)
+    (save-file "minimal-pie-chart.png")))
 
 (defun bigger-pie-chart ()  
-  (adw-charting:with-pie-chart (300 200)
+  (with-pie-chart (300 200)
     (loop for (label value) in '(("A" 400)
 				 ("B" 217)
 				 ("C" 212.5)
 				 ("D" 350)
 				 ("E" 1000))
-	  do (adw-charting:add-slice label value))
-    (adw-charting:save-file "bigger-pie-chart.png")))
+	  do (add-slice label value))
+    (save-file "bigger-pie-chart.png")))
 
 (defun minimal-line-chart ()
-  (adw-charting:with-line-chart (400 300)
-    (adw-charting:add-series "A" '((-1 -2) (0 4) (1 5) (4 6) (5 -3)))
-    (adw-charting:add-series "B" '((-1 4) (0 -2) (1 6) (5 -2) (6 5)))
-    (adw-charting:save-file "minimal-line-chart.png")))
+  (with-line-chart (400 300)
+    (add-series "A" '((-1 -2) (0 4) (1 5) (4 6) (5 -3)))
+    (add-series "B" '((-1 4) (0 -2) (1 6) (5 -2) (6 5)))
+    (save-file "minimal-line-chart.png")))
 
 (defun customized-line-chart ()
-  (adw-charting:with-line-chart (400 300 :background '(.7 .5 .7))
-    (adw-charting:add-series "A" '((-.1 -.2) (0 .4) (.1 .5) (.4 .6) (.5 -.3)))
-    (adw-charting:add-series "B" '((-.1 .4) (0 -.2) (.1 .6) (.5 -.2) (.6 .5)))
-    (adw-charting:add-series "C" '((-.1 0) (0 .3) (.1 .1) (.2 .5) (.4 -.6))
+  (with-line-chart (400 300 :background '(.7 .5 .7))
+    (add-series "A" '((-.1 -.2) (0 .4) (.1 .5) (.4 .6) (.5 -.3)))
+    (add-series "B" '((-.1 .4) (0 -.2) (.1 .6) (.5 -.2) (.6 .5)))
+    (add-series "C" '((-.1 0) (0 .3) (.1 .1) (.2 .5) (.4 -.6))
 		:color '(.3 .7 .9))
-    (adw-charting:set-axis :y "widgets" :label-formatter "~,2F")
-    (adw-charting:set-axis :x nil
+    (set-axis :y "widgets" :label-formatter "~,2F")
+    (set-axis :x nil
 	      :draw-gridlines-p nil
 	      :label-formatter #'(lambda (v)
 				   ;;could do something more interesting here
 				   (format nil "~,1F" (expt 2 v))))
-    (adw-charting:save-file "customized-line-chart.png")))
+    (save-file "customized-line-chart.png")))
 
 (defvar +boink-data+ '((3220487700 "baker" "SBCL,(:ARCH :EMULATED-X86 :FEATURES NIL)" "0.7.0"
                  9.179666666666666d0 0.039405685894399696d0)
@@ -195,26 +195,26 @@
                  0.6656666666666667d0 0.008647414514048853d0)))
 
 (defun boinkmark ()
-  (adw-charting:with-line-chart (400 300)
-    (adw-charting:add-series "baker: SBCL"
+  (with-line-chart (400 300)
+    (add-series "baker: SBCL"
 		(loop for row in +boink-data+
 		      for i from 0
 		      collect (list i (nth 4 row))))
-    (adw-charting:set-axis :y "seconds" :label-formatter "~,2F")
-    (adw-charting:set-axis :x nil
+    (set-axis :y "seconds" :label-formatter "~,2F")
+    (set-axis :x nil
 	      :draw-gridlines-p nil
 	      :label-formatter #'(lambda (i)
 				   (nth 3 (nth i +boink-data+))))
-    (adw-charting:save-file "boink.png")))
+    (save-file "boink.png")))
 
 (defun stuart-mackey-1 ()
-  (adw-charting:with-line-chart (400 300)
-    (adw-charting:add-series "test" '((1 0.0) (2 2.0) (3 3.0) (4 1.5)) :color '(0 0 1))
-    (adw-charting:set-axis :y "amount" :label-formatter "~,2f")
-    (adw-charting:set-axis :x "days" :data-interval 1
+  (with-line-chart (400 300)
+    (add-series "test" '((1 0.0) (2 2.0) (3 3.0) (4 1.5)) :color '(0 0 1))
+    (set-axis :y "amount" :label-formatter "~,2f")
+    (set-axis :x "days" :data-interval 1
 	      :draw-gridlines-p nil	   
 	      :label-formatter (lambda (v) (format nil "~d" (round v))))
-    (adw-charting:save-file "stuart-mackey-1.png")))
+    (save-file "stuart-mackey-1.png")))
 
 (defun random-between (min max)
   (+ min
@@ -232,18 +232,28 @@
 
 (defun mixed-mode ()
   "uses the :mode argument to add-series to mix different types of charts"
-  (adw-charting:with-line-chart (400 300)
-    (adw-charting:add-series "line" (random-series 20 0 -10 20 10))
+  (with-line-chart (400 300)
+    (add-series "line" (random-series 20 0 -10 20 10))
 
-    (adw-charting:set-axis :y "foos" :label-formatter "~,2f")
-    (adw-charting:set-axis :x "bars"
+    (set-axis :y "foos" :label-formatter "~,2f")
+    (set-axis :x "bars"
 			   :label-formatter "~,2f"
 			   :draw-gridlines-p nil)
-    (adw-charting:save-file "mixed-mode.png")))
+    (save-file "mixed-mode.png")))
 
 (defun pie-gchart ()
-  (adw-charting::with-gchart (:pie-3d 400 200)
-    (adw-charting:add-slice "foo" 10d0)
-    (adw-charting:add-slice "bar" 10d0)
-    (adw-charting:add-slice "baz" 20d0)
-    (adw-charting:save-file "pie-gchart.png")))
+  (with-gchart (:pie-3d 400 200)
+    (add-slice "foo" 10d0)
+    (add-slice "bar" 10d0)
+    (add-slice "baz" 20d0)
+    (add-features :label)
+    (format T (chart-url))
+    (save-file "pie-gchart.png")))
+
+(defun minimal-line-gchart ()
+  (with-gchart (:line 400 300)
+    (add-series "A" '((-1 -2) (0 4) (1 5) (4 6) (5 -3)))
+    (add-series "B" '((-1 4) (0 -2) (1 6) (5 -2) (6 5)))
+    (add-features :label)
+    (format T (chart-url))
+    (save-file "minimal-line-gchart.png")))
