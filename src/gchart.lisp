@@ -42,7 +42,7 @@
 				"t:~{~F~^,~}"
 				(normalize-elements chart)))
 	(:line
-	 ;;pairs of X | Y, normalized to
+	 ;;pairs of X | Y, normalized to 0-100 for google's chart algorithms
 	 (format nil "t:~{~a~^|~}"
 		 (loop for (exes wyes) in (normalized-series chart)
 		    collect (format nil
@@ -88,8 +88,7 @@
   `(progn
     ,@(loop for (k v) in params
      collect 
-       `(set-parameter ,chart ,k ,v)))
-  )
+       `(set-parameter ,chart ,k ,v))))
 
 (defmethod ensure-default-parameters ((chart gchart))
   (set-parameters (chart)
@@ -107,7 +106,7 @@
 (defmethod add-feature ((feature-name (eql :label)))
   (set-parameter *current-chart* (case (chart-type *current-chart*)
 				   ((:pie :pie-3d) "chl")
-				   (:line "chdl"))
+				   (T "chdl"))
 		 (build-labels *current-chart*)))
 
 (defmethod add-feature ((feature-name (eql :transparent-background)))

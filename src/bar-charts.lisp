@@ -21,6 +21,7 @@
 (defclass bar-chart (line-chart) ())
 
 (defun bar-width (chart)
+  (declare (ignore chart))
   1)
 
 (defun draw-bar (x y bars-drawn chart graph)
