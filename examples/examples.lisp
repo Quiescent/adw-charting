@@ -257,3 +257,11 @@
     (add-features :label)
     (format T (chart-url))
     (save-file "minimal-line-gchart.png")))
+
+(defun minimal-bar-gchart ()
+  (with-gchart (:v-bar 400 300)
+    (add-series "A" '((-1 -2) (0 4) (1 5) (4 6) (5 -3)))
+    (add-series "B" '((-1 4) (0 -2) (1 6) (5 -2) (6 5)) :color (make-color "ff0000"))
+    (add-features :label)
+    (format T (chart-url))
+    (save-file "minimal-bar-gchart.png")))

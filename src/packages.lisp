@@ -39,4 +39,5 @@
        :add-feature
        :add-features
        :add-title
+       :make-color
     ))

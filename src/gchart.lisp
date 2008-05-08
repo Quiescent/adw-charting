@@ -27,13 +27,27 @@
 
 (defvar *chart-types* '((:pie . "p")
 			(:pie-3d . "p3")
-			(:line . "lxy")))
+			(:line . "lxy")
+			(:v-bar .  "bvs")
+			(:h-bar . "bhs")))
 
 (defparameter +google-chart-url+ "http://chart.apis.google.com/chart")
 
-(defmethod single-dataset-p ((chart gchart))
-  "does this chart have a single dataset, or many?"
-  (member (chart-type chart) '(:pie :pie-3d)))
+(defun make-color (html-color)
+  "takes an html color and returns the closest (r g b) list equivalent"
+  (let ((*read-base* 16))
+    (loop
+       for start in '(0 2 4)
+       collect (interpolate 0 255.0 
+		(read-from-string (subseq html-color start (+ 2 start)))
+		1.0))))
+
+(defun make-html-color (color)
+  "takes a standard (r g b) color list and returns the closest HTML equivalent"
+  (format nil "~{~2,'0X~}"
+	  (mapcar #'(lambda (c)
+		      (ceiling (interpolate 0 1.0 c 255)))
+		  color)))
 
 (defmethod build-data ((chart gchart))
   "helper to build the list of data"
@@ -47,10 +61,30 @@
 		 (loop for (exes wyes) in (normalized-series chart)
 		    collect (format nil
 				    "~{~,2F~^,~}|~{~,2F~^,~}"
-				    exes wyes))))))
+				    exes wyes))))
+	((:v-bar :h-bar)
+	 ;;these want the bars specified as wyes1|wyes2|wyesN, so
+	 ;;get all the lists of wyes sorted out with 0s for the missing values
+	 (format nil "t:~{~a~^|~}"
+		 (let ((xys (normalized-series chart))
+		       (all-exes nil))
+		   ;;assemble list of all exes
+		   (dolist (xy xys)
+		     (dolist (x (first xy))
+		       (unless (member x all-exes)
+			 (push x all-exes))))
+		   (setf all-exes (sort all-exes #'<))
+		   (loop for (exes wyes) in xys
+			collect
+			(format nil "~{~,2F~^,~}"
+				(mapcar #'(lambda (x)
+					    (or (when-let (idx (position x exes))
+						  (nth idx wyes))
+						0))
+					all-exes))))))))
 
-(defun interpolate (min max val)
-  (* 100 (/ (- val min)
+(defun interpolate (min max val &optional (interpolated-max 100))
+  (* interpolated-max (/ (- val min)
 	    (- max min))))
 
 (defun normalize-elements (chart)
@@ -97,7 +131,11 @@
 			       (height chart)))
 		  (:cht (cdr (assoc (chart-type chart)
 				   *chart-types*)))
-		  (:chd (build-data chart))))
+		  (:chd (build-data chart))
+		  (:chco (format nil "~{~a~^,~}"
+				 (mapcar #'make-html-color
+					 (mapcar #'color (chart-elements chart)))
+				 ))))
 
 (defparameter +chart-features+ '(:label :transparent-background :label-percentages))
 
