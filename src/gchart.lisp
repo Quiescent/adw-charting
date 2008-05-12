@@ -152,6 +152,26 @@
 		 :chf
 		 "bg,s,00000000"))
 
+(defmethod add-feature ((feature-name (eql :data-scaling)))
+  (let ((totals (make-hash-table))
+	(min-y 0))
+    (loop for (exes wyes) in (normalized-series *current-chart*)
+	  do
+	  (loop for x in exes
+		for y in wyes
+		do		
+		(if (plusp y)
+		    (incf (gethash x totals 0) y)
+		    (if (< y min-y)
+			(setf min-y y)))))
+    (set-parameter *current-chart*
+		   :chds
+		   (format nil "~,2F,~,2F" min-y
+			   (loop for k being the hash-keys in totals
+				 using (hash-value v)
+				 maximizing v into max
+				 finally (return max))))))
+
 (defmethod add-feature ((feature-name (eql :label-percentages)))
   (loop for elem in (chart-elements *current-chart*)
 	for normalized in (normalize-elements *current-chart*)
