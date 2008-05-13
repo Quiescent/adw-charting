@@ -118,7 +118,7 @@
 		 (parameters chart))
 	value))
 
-(defmacro set-parameters ((chart) &rest params)
+(defmacro set-parameters ((chart) &body params)
   `(progn
     ,@(loop for (k v) in params
      collect 
@@ -126,16 +126,15 @@
 
 (defmethod ensure-default-parameters ((chart gchart))
   (set-parameters (chart)
-		  (:chs (format nil "~ax~a"
-			       (width chart)
-			       (height chart)))
-		  (:cht (cdr (assoc (chart-type chart)
-				   *chart-types*)))
-		  (:chd (build-data chart))
-		  (:chco (format nil "~{~a~^,~}"
-				 (mapcar #'make-html-color
-					 (mapcar #'color (chart-elements chart)))
-				 ))))
+    (:chs (format nil "~ax~a"
+		  (width chart)
+		  (height chart)))
+    (:cht (cdr (assoc (chart-type chart)
+		      *chart-types*)))
+    (:chd (build-data chart))
+    (:chco (format nil "~{~a~^,~}"
+		   (mapcar #'make-html-color
+			   (mapcar #'color (chart-elements chart)))))))
 
 (defparameter +chart-features+ '(:label :transparent-background :label-percentages))
 
@@ -190,6 +189,7 @@
   (mapc #'add-feature names))
 
 (defmethod build-parameters ((chart gchart))
+  
   "returns an alist that defines to google what
 it should be rendering"
   (loop for k being the hash-keys in (parameters chart) using (hash-value v)
