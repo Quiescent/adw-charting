@@ -188,6 +188,31 @@
 		 :chtt
 		 title))
 
+(defun append-parameter (key val &optional (chart *current-chart*))
+  "adds an axis, and returns the index of that axis"
+  (setf (gethash key (parameters chart))
+	(append (gethash key (parameters chart))
+		(list val)))
+  (position val (gethash key (parameters chart))))
+
+(defun add-axis (val &optional (chart *current-chart*))
+  "adds an axis, and returns the index of that axis"
+  (append-parameter :chxt val chart))
+
+(defmethod (setf x-axis) (ax (chart gchart))
+  (let ((idx (add-axis "x" chart)))
+    (append-parameter
+     :chxl
+     (format nil "~D:|~{~a~^|~}" idx
+	     (reverse
+	      (mapcar (label-formatter ax)
+		      (reduce #'union
+			      (loop for elem in (chart-elements chart)
+				    collect (mapcar #'first (data elem))))))))))
+
+(defmethod (setf y-axis) (ax (chart gchart))
+  (error "not ready yet"))
+
 (defun add-features (&rest names)
   (mapc #'add-feature names))
 
