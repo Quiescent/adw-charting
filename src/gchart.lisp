@@ -113,8 +113,11 @@
 	  (mapcar #'label
 		  (chart-elements chart))))
 
+(defun prepare-key (key)
+  (string-downcase (princ-to-string key)))
+
 (defmethod set-parameter ((chart gchart) key value)
-  (setf (gethash (string-downcase (princ-to-string key))
+  (setf (gethash key
 		 (parameters chart))
 	value))
 
@@ -188,12 +191,21 @@
 (defun add-features (&rest names)
   (mapc #'add-feature names))
 
+(defmethod finalize-parameter (key val)
+  (if (listp val)
+      (format nil "~{~a~^,~}" val)
+      val))
+
+(defmethod finalize-parameter ((key (eql :chxl)) val)
+  (break "~a" val)
+  (format nil "~{~a~}" val))
+
 (defmethod build-parameters ((chart gchart))
   
   "returns an alist that defines to google what
 it should be rendering"
   (loop for k being the hash-keys in (parameters chart) using (hash-value v)
-       collect (cons k v)))
+	collect (cons (prepare-key k) (finalize-parameter k v))))
 
 (defmethod save-chart-to-file (filename (chart gchart))
   "makes the call to google, saves the result in the file"
