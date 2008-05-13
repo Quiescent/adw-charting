@@ -222,7 +222,6 @@
       val))
 
 (defmethod finalize-parameter ((key (eql :chxl)) val)
-  (break "~a" val)
   (format nil "~{~a~}" val))
 
 (defmethod build-parameters ((chart gchart))
