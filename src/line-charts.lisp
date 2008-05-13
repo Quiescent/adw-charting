@@ -434,3 +434,4 @@ a function of 1 argument to control label formatting"
     (ccase axis
       (:x (setf (x-axis *current-chart*) ax))
       (:y (setf (y-axis *current-chart*) ax)))))
+4
