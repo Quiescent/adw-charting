@@ -199,6 +199,8 @@
   "adds an axis, and returns the index of that axis"
   (append-parameter :chxt val chart))
 
+
+
 (defmethod (setf x-axis) (ax (chart gchart))
   (let ((idx (add-axis "x" chart)))
     (append-parameter
@@ -208,10 +210,18 @@
 	      (mapcar (label-formatter ax)
 		      (reduce #'union
 			      (loop for elem in (chart-elements chart)
-				    collect (mapcar #'first (data elem))))))))))
+				    collect (mapcar #'x (data elem))))))))))
 
 (defmethod (setf y-axis) (ax (chart gchart))
-  (error "not ready yet"))
+  (let ((idx (add-axis "y" chart)))
+    (append-parameter
+     :chxl
+     (format nil "~D:|~{~a~^|~}" idx
+	     (reverse
+	      (mapcar (label-formatter ax)
+		      (reduce #'union
+			      (loop for elem in (chart-elements chart)
+				    collect (mapcar #'y (data elem))))))))))
 
 (defun add-features (&rest names)
   (mapc #'add-feature names))
