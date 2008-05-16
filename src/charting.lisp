@@ -216,9 +216,11 @@ place a label should go")
   "saves the *current-chart* to the given file."
   (save-chart-to-file filename *current-chart*))
 
+(defmethod save-chart-to-stream (stream (chart chart))
+  (with-canvas (:width (width chart) :height (height chart))
+    (%render-chart)
+    (save-png-stream stream)))
 
 (defun save-stream (stream)
   "saves the *current-chart* to the given stream."
-  (with-canvas (:width (width *current-chart*) :height (height *current-chart*))
-    (%render-chart)
-    (save-png-stream stream)))
+  (save-chart-to-stream stream *current-chart*))
