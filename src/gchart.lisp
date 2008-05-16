@@ -232,7 +232,7 @@
       val))
 
 (defmethod finalize-parameter ((key (eql :chxl)) val)
-  (format nil "~{~a~}" val))
+  (format nil "~{~a~^|~}" val))
 
 (defmethod build-parameters ((chart gchart))  
   "returns an alist that defines to google what
