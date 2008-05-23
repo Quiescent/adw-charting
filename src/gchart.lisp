@@ -241,12 +241,43 @@
   (mapc #'add-feature names))
 
 (defmethod finalize-parameter (key val)
-  (if (listp val)
-      (format nil "~{~a~^,~}" val)
-      val))
+  (princ-to-string val))
+
+(defmethod finalize-parameter (key (val float))
+  (format nil "~,2F" val))
+
+(defmethod finalize-parameter (key (val string))
+  val)
+
+(defmethod finalize-parameter (key (val list))
+ (format nil "~{~a~^,~}" val))
+
+(defun inline-break (format-string &rest args)
+  "call BREAK with the given format and args, then return the args"
+  (apply #'break format-string args)
+  (apply #'values args))
 
 (defmethod finalize-parameter ((key (eql :chxl)) val)
-  (format nil "~{~a~^|~}" val))
+  (format nil "~{~a~^|~}"
+	  (loop for (idx valfn formatfn) in val
+		collect (format nil "~D:|~{~a~^|~}" idx
+				(mapcar formatfn
+					(sort
+					 (remove-duplicates
+					  (loop for elem in (chart-elements *current-chart*)
+						nconc (mapcar valfn (data elem))))
+					 #'<))))))
+
+(defmethod finalize-parameter ((key (eql :chxr)) val)
+  (let ((all-data (mapcan #'data (chart-elements *current-chart*))))
+  (format nil "~{~a~^|~}"
+	  (loop for (idx valfn formatfn) in val
+		collect (format nil "~D,~{~,2F~^,~}" idx								
+				(loop for x in (mapcar valfn all-data)
+				      minimizing x into min
+				      maximizing x into max
+				      finally (return (list min max))))))))
+
 
 (defmethod build-parameters ((chart gchart))  
   "returns an alist that defines to google what
