@@ -167,6 +167,14 @@
 		 :chf
 		 "bg,s,00000000"))
 
+(defmethod add-feature ((feature-name (eql :adjusted-zero)))
+  (destructuring-bind ((min-x min-y) (max-x max-y))
+      (find-chart-extremes *current-chart*)
+    (declare (ignore min-x max-x))
+    (set-parameter *current-chart*
+		 :chp
+		 (interpolate min-y max-y 0.0 :interpolated-max 1.0))))
+
 (defmethod add-feature ((feature-name (eql :data-scaling)))
   (let ((totals (make-hash-table))
 	(min-y 0))
