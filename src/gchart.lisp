@@ -29,7 +29,9 @@
 			(:pie-3d . "p3")
 			(:line . "lxy")
 			(:v-bar .  "bvs")
-			(:h-bar . "bhs")))
+			(:h-bar . "bhs")
+			(:v-gbar .  "bvg")
+			(:h-gbar . "bhg")))
 
 (defparameter +google-chart-url+ "http://chart.apis.google.com/chart")
 
@@ -62,7 +64,7 @@
 		    collect (format nil
 				    "~{~,2F~^,~}|~{~,2F~^,~}"
 				    exes wyes))))
-	((:v-bar :h-bar)
+	((:v-bar :h-bar :v-gbar :h-gbar)
 	 ;;these want the bars specified as wyes1|wyes2|wyesN, so
 	 ;;get all the lists of wyes sorted out with 0s for the missing values
 	 (format nil "t:~{~a~^|~}"
