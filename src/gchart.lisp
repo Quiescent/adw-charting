@@ -224,33 +224,18 @@
 		(list val)))
   (position val (gethash key (parameters chart))))
 
-(defun add-axis (val &optional (chart *current-chart*))
+(defun add-axis (val valfn axis &optional (chart *current-chart*))
   "adds an axis, and returns the index of that axis"
-  (append-parameter :chxt val chart))
-
-
+    (let ((idx (append-parameter :chxt val chart))
+	  (param (if (eql :auto (data-interval axis))
+		     :chxr :chxl)))
+      (append-parameter param (list idx valfn (label-formatter axis)))))
 
 (defmethod (setf x-axis) (ax (chart gchart))
-  (let ((idx (add-axis "x" chart)))
-    (append-parameter
-     :chxl
-     (format nil "~D:|~{~a~^|~}" idx
-	     (reverse
-	      (mapcar (label-formatter ax)
-		      (reduce #'union
-			      (loop for elem in (chart-elements chart)
-				    collect (mapcar #'x (data elem))))))))))
+  (add-axis "x" #'x ax chart))
 
 (defmethod (setf y-axis) (ax (chart gchart))
-  (let ((idx (add-axis "y" chart)))
-    (append-parameter
-     :chxl
-     (format nil "~D:|~{~a~^|~}" idx
-	     (reverse
-	      (mapcar (label-formatter ax)
-		      (reduce #'union
-			      (loop for elem in (chart-elements chart)
-				    collect (mapcar #'y (data elem))))))))))
+    (add-axis "y" #'y ax chart))
 
 (defun add-features (&rest names)
   (mapc #'add-feature names))
