@@ -60,7 +60,7 @@
 	(:line
 	 ;;pairs of X | Y, normalized to 0-100 for google's chart algorithms
 	 (format nil "t:~{~a~^|~}"
-		 (loop for (exes wyes) in (normalized-series chart)
+		 (loop for (exes wyes series) in (normalized-series chart)
 		    collect (format nil
 				    "~{~,2F~^,~}|~{~,2F~^,~}"
 				    exes wyes))))
@@ -76,14 +76,14 @@
 		       (unless (member x all-exes)
 			 (push x all-exes))))
 		   (setf all-exes (sort all-exes #'<))
-		   (loop for (exes wyes) in xys
-			collect
-			(format nil "~{~,2F~^,~}"
-				(mapcar #'(lambda (x)
-					    (or (when-let (idx (position x exes))
-						  (nth idx wyes))
-						0))
-					all-exes))))))))
+		   (loop for (exes wyes series) in xys
+			 for idx from 0
+			 do
+			 (when (eql (mode series) :line)
+			   (append-parameter :chm
+					     (format nil "D,~a,~D,0,2,1"
+						     (make-html-color (color series))
+						     idx)
 
 					     chart))
 			 
@@ -118,7 +118,7 @@
 	    do
 	      (push (interpolate min-x max-x x) exes)
 	      (push (interpolate min-y max-y y) wyes))
-       collect (list exes wyes))))
+       collect (list exes wyes series))))
 
 (defmethod build-labels ((chart gchart))
   "helper to build the list of labels"
@@ -170,7 +170,7 @@
 (defmethod add-feature ((feature-name (eql :data-scaling)))
   (let ((totals (make-hash-table))
 	(min-y 0))
-    (loop for (exes wyes) in (normalized-series *current-chart*)
+    (loop for (exes wyes series) in (normalized-series *current-chart*)
 	  do
 	  (loop for x in exes
 		for y in wyes
