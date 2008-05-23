@@ -42,13 +42,13 @@
        for start in '(0 2 4)
        collect (interpolate 0 255.0 
 		(read-from-string (subseq html-color start (+ 2 start)))
-		1.0))))
+		:interpolated-max 1.0))))
 
 (defun make-html-color (color)
   "takes a standard (r g b) color list and returns the closest HTML equivalent"
   (format nil "~{~2,'0X~}"
 	  (mapcar #'(lambda (c)
-		      (ceiling (interpolate 0 1.0 c 255)))
+		      (ceiling (interpolate 0 1.0 c :interpolated-max 255)))
 		  color)))
 
 (defmethod build-data ((chart gchart))
@@ -85,9 +85,20 @@
 						0))
 					all-exes))))))))
 
-(defun interpolate (min max val &optional (interpolated-max 100))
-  (* interpolated-max (/ (- val min)
-	    (- max min))))
+					     chart))
+			 
+			 collect
+			 (format nil "~{~D~^,~}"
+				 (mapcar #'(lambda (x)					    
+					     (or (when-let (idx (position x exes))
+						   (truncate (nth idx wyes)))
+						 0))
+					 all-exes))))))))
+
+(defun interpolate (min max val &key (interpolated-max 100) (interpolated-min 0))
+  (+ interpolated-min
+     (* (- interpolated-max interpolated-min) (/ (- val min)
+			    (- max min)))))
 
 (defun normalize-elements (chart)
   (let ((sum (reduce #'+
