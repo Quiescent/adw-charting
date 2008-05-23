@@ -209,6 +209,14 @@
 		 :chtt
 		 title))
 
+(defun bar-spacing (bar-width-px &optional bar-seperation-px group-seperation-px)
+  (set-parameter *current-chart*
+		 :chbh
+		 (format nil "~D,~D,~D" bar-width-px bar-seperation-px group-seperation-px)))
+
+(defun grid (x-step y-step line-length blank-length)
+  (set-parameter *current-chart* :chg (list x-step y-step line-length blank-length)))
+
 (defun append-parameter (key val &optional (chart *current-chart*))
   "adds an axis, and returns the index of that axis"
   (setf (gethash key (parameters chart))
