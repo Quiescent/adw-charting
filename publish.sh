@@ -1,7 +1,7 @@
 #! /bin/bash
 
 echo "sync with cl-user"
-darcs push rdavis@common-lisp.net:/project/adw-charting/public_html/darcs 
+darcs push rdavis@common-lisp.net:/project/adw-charting/public_html/darcs/adw-charting
 echo "Compile the help"
 ~/clbuild/clbuild lisp --load doc/make-docs.lisp
 echo "Publish the help"
