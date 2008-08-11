@@ -40,7 +40,11 @@
 							*default-font-file*
 							(asdf:component-pathname
 							 (asdf:find-system :adw-charting))))))))
-      ,@body)))
+      ,@body))
+  (defmacro with-color-stack (() &body body)
+    "resets *color-stack* to the initial list"
+    `(let ((*color-stack* (copy-list +default-colors+)))
+       ,@body)))
 
 
 (defclass area ()
@@ -117,7 +121,7 @@ specified in the chart's label-size"
   (clear-canvas);;fills in the background
   
   ;;ensure we have colors to auto-assign
-  (let ((*color-stack* (copy-list +default-colors+)))
+  (with-color-stack ()
     (draw-chart chart)
     (when (draw-legend-p chart)
       (draw-legend chart))))

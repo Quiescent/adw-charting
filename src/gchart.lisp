@@ -318,4 +318,5 @@ it should be rendering"
 			 :chart-type ,type
 			 :width ,width
 			 :height ,height)))
-     ,@body))
+     (with-color-stack ()
+       ,@body)))
