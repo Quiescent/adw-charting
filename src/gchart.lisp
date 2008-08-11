@@ -23,7 +23,9 @@
 	       :initarg :chart-type)
    (parameters :accessor parameters
 	       :initform (make-hash-table :test 'equal)
-	       :initarg :parameters)))
+	       :initarg :parameters)
+   (axes :accessor axes
+	 :initform (make-hash-table))))
 
 (defvar *chart-types* '((:pie . "p")
 			(:pie-3d . "p3")
@@ -229,6 +231,7 @@
     (let ((idx (append-parameter :chxt val chart))
 	  (param (if (eql :auto (data-interval axis))
 		     :chxr :chxl)))
+      (setf (gethash idx (axes chart)) axis)
       (append-parameter param (list idx valfn (label-formatter axis)))))
 
 (defmethod (setf x-axis) (ax (chart gchart))
@@ -270,13 +273,17 @@
 
 (defmethod finalize-parameter ((key (eql :chxr)) val)
   (let ((all-data (mapcan #'data (chart-elements *current-chart*))))
-  (format nil "~{~a~^|~}"
-	  (loop for (idx valfn formatfn) in val
-		collect (format nil "~D,~{~,2F~^,~}" idx								
-				(loop for x in (mapcar valfn all-data)
-				      minimizing x into min
-				      maximizing x into max
-				      finally (return (list min max))))))))
+    (format nil "~{~a~^|~}"
+	    (loop for (idx valfn formatfn) in val		 
+	       collect (format nil "~D,~{~,2F~^,~}" idx
+			       	;;find the function for scaling this axis, scale
+			       (mapcar (or (scalefn (gethash idx (axes *current-chart*)))
+					   #'identity)
+				       ;;find the global min/max
+				       (loop for x in (mapcar valfn all-data)
+					  minimizing x into min
+					  maximizing x into max
+					  finally (return (list min max)))))))))
 
 
 (defmethod build-parameters ((chart gchart))  
