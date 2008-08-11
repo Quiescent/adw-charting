@@ -53,7 +53,10 @@ across the chart")
    (mode :accessor mode
 	 :initarg :mode)
    (angle :accessor angle
-	  :initarg :angle))
+	  :initarg :angle)
+   (scalefn :accessor scalefn
+	  :initarg :scalefn
+	  :documentation "Values will be passed through this function for scaling prior to display"))
   (:documentation "represents an axis on a line chart"))
 
 (defmethod axis-label ((axis axis) data)
@@ -415,6 +418,7 @@ dimensions as the target for chart commands, with the specified background."
 		 (label-formatter #'princ-to-string)
 		 (mode :value)
 		 (data-interval nil)
+		 (scalefn nil)
 		 (draw-zero-p nil)
 		 (angle nil))
   "set the axis on the *current-chart*.  axis is either :x or :y.
@@ -424,6 +428,7 @@ a function of 1 argument to control label formatting"
 			   :label title
 			   :draw-gridlines-p draw-gridlines-p
 			   :mode mode
+			   :scalefn scalefn
 			   :angle angle
 			   :draw-zero-p draw-zero-p
 			   :data-interval data-interval
