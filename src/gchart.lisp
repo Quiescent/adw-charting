@@ -226,6 +226,7 @@
 		(list val)))
   (position val (gethash key (parameters chart))))
 
+
 (defun add-axis (val valfn axis &optional (chart *current-chart*))
   "adds an axis, and returns the index of that axis"
     (let ((idx (append-parameter :chxt val chart))
