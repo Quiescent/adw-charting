@@ -24,13 +24,15 @@
 (in-package :net.acceleration.charting.system)
 
 
-(defsystem :adw-charting
-  :description "Charting package to make pretty graphs and charts"
+(defsystem :adw-charting-google
+  :description "Charting package to make graphs and charts using the Google chart API"
   :author "Ryan Davis <ryan@acceleration.net>"
   :licence "LGPL (or talk to me)"
   :version "0.2"
+  :depends-on (#:drakma #:adw-charting)
   :components ((:module :src
-			:components ((:file "packages")
-				     (:file "utils" :depends-on ("packages"))
-				     (:file "charting" :depends-on ("utils"))))))
+			:components
+			((:module :google
+				  :components ((:file "packages")
+					       (:file "gchart" :depends-on ("packages"))))))))
 

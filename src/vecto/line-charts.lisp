@@ -18,51 +18,9 @@
 
 (in-package :adw-charting)
 
-(defclass series (chart-element)
-  ((data :accessor data
-	 :initarg :data
-	 :documentation "a list of (x y) pairs (as lists, not cons cells)")
-   (mode :accessor mode
-	 :initarg :mode
-	 :initform 'default
-	 :documentation "a flag for how to render this series"))  
-  (:documentation "represents a line on a line chart"))
 
-(defclass axis ()
-  ((label :accessor label
-	  :initarg :label
-	  :initform nil
-	  :documentation "description of this axis, usually the unit
-of measurement ($, s, km, etc)")   
-   (label-formatter :accessor label-formatter
-		    :initarg :label-formatter
-		    :initform #'princ-to-string
-		    :documentation "a function to format data points, for
-printing periodic values along the axis")
-   (draw-gridlines-p :accessor draw-gridlines-p
-		     :initarg :draw-gridlines-p
-		     :initform T
-		     :documentation "determines if grid-lines are drawn
-across the chart")
-   (data-interval :accessor data-interval
-		  :initarg :data-interval
-		  :initform nil)
-   (draw-zero-p :accessor draw-zero-p
-		:initarg :draw-zero-p
-		:documentation "Should we draw a line along the 0 of this axis?")
-   (mode :accessor mode
-	 :initarg :mode)
-   (angle :accessor angle
-	  :initarg :angle)
-   (scalefn :accessor scalefn
-	  :initarg :scalefn
-	  :documentation "Values will be passed through this function for scaling prior to display"))
-  (:documentation "represents an axis on a line chart"))
 
-(defmethod axis-label ((axis axis) data)
-  (funcall (label-formatter axis) data))
-
-(defclass line-chart (chart)
+(defclass line-chart (vchart)
   ((x-axis :accessor x-axis
 	   :initarg :x-axis
 	   :initform nil
@@ -408,35 +366,3 @@ dimensions as the target for chart commands, with the specified background."
 					  :height ,height
 					  :background ,background)))
     ,@body))
-
-(defun add-series (label data &key (color nil) (mode 'default))
-  "adds a series to the *current-chart*."
-  (push (make-instance 'series :label label :data data :color color :mode mode)
-	(chart-elements *current-chart*)))
-
-(defun set-axis (axis title &key (draw-gridlines-p T) 
-		 (label-formatter #'princ-to-string)
-		 (mode :value)
-		 (data-interval nil)
-		 (scalefn nil)
-		 (draw-zero-p nil)
-		 (angle nil))
-  "set the axis on the *current-chart*.  axis is either :x or :y.
-label-formatter is either a format-compatible control string or
-a function of 1 argument to control label formatting"
-  (let ((ax (make-instance 'axis
-			   :label title
-			   :draw-gridlines-p draw-gridlines-p
-			   :mode mode
-			   :scalefn scalefn
-			   :angle angle
-			   :draw-zero-p draw-zero-p
-			   :data-interval data-interval
-			   :label-formatter (etypecase label-formatter
-					      (string #'(lambda (v)
-							  (format nil label-formatter v)))
-					      (function label-formatter)))))
-    (ccase axis
-      (:x (setf (x-axis *current-chart*) ax))
-      (:y (setf (y-axis *current-chart*) ax)))))
-4

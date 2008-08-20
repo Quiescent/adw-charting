@@ -24,13 +24,18 @@
 (in-package :net.acceleration.charting.system)
 
 
-(defsystem :adw-charting
-  :description "Charting package to make pretty graphs and charts"
+(defsystem :adw-charting-vecto
+  :description "Charting package to make pretty graphs and charts using Vecto"
   :author "Ryan Davis <ryan@acceleration.net>"
   :licence "LGPL (or talk to me)"
   :version "0.2"
+  :depends-on (#:vecto #:adw-charting)
   :components ((:module :src
-			:components ((:file "packages")
-				     (:file "utils" :depends-on ("packages"))
-				     (:file "charting" :depends-on ("utils"))))))
+			:components
+			((:module :vecto
+				  :components ((:file "packages")
+					       (:file "charts" :depends-on ("packages"))
+					       (:file "pie-charts" :depends-on ("charts"))
+					       (:file "line-charts" :depends-on ("charts"))
+					       (:file "bar-charts" :depends-on ("line-charts"))))) )))
 

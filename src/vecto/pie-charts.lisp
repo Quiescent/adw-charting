@@ -18,7 +18,7 @@
 
 (in-package :adw-charting)
 
-(defclass pie-chart (chart)
+(defclass pie-chart (vchart)
   ((total :accessor total :initarg :total :initform nil))
   (:default-initargs :width 400))
 
@@ -30,10 +30,6 @@
 		(loop for item in 
 		      (chart-elements chart)
 		      summing (value item)))))
-
-(defclass slice (chart-element)  
-  ((value :accessor value :initarg :value))
-  (:documentation "this is a slice of a pie chart"))
 
 (defmethod radius ((chart pie-chart))
   (truncate (/ (- (height chart) 10)
@@ -135,8 +131,3 @@
 					 :height ,height
 					 :background ,background)))
     ,@body))
-
-(defun add-slice (label value &key color)
-  "add a slice to the pie"
-  (push (make-instance 'slice :color color :label label :value value)
-	(chart-elements *current-chart*)))

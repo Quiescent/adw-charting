@@ -214,7 +214,10 @@
 (defun bar-spacing (bar-width-px &optional bar-seperation-px group-seperation-px)
   (set-parameter *current-chart*
 		 :chbh
-		 (format nil "~D,~D,~D" bar-width-px bar-seperation-px group-seperation-px)))
+		 (format nil "~{~D~^,~}"
+			 (loop for x in (list bar-width-px bar-seperation-px group-seperation-px)
+			      when x
+			      collect x))))
 
 (defun grid (x-step y-step line-length blank-length)
   (set-parameter *current-chart* :chg (list x-step y-step line-length blank-length)))

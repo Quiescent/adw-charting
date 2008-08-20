@@ -24,28 +24,17 @@
 				 (0 1 1)
 				 (0 1 0)
 				 (0 0 1)))
-(defvar *default-font-file* "FreeSans.ttf")
+
 (defvar *color-stack* +default-colors+)
-(defvar *current-font* nil "a font object")
-(defvar *font* nil "a font object")
 (defvar *current-chart* nil
   "The currently active chart. Bound for the
       duration of WITH-CHART.")
 
-
 (eval-when (:compile-toplevel :load-toplevel :execute)
-  (defmacro with-font ((&optional font-file) &body body)
-    "ensures *font* is a valid font loader."
-    `(let ((*font* (or *font* (get-font (or ,font-file (merge-pathnames
-							*default-font-file*
-							(asdf:component-pathname
-							 (asdf:find-system :adw-charting))))))))
-      ,@body))
   (defmacro with-color-stack (() &body body)
     "resets *color-stack* to the initial list"
     `(let ((*color-stack* (copy-list +default-colors+)))
        ,@body)))
-
 
 (defclass area ()
   ((width :accessor width
@@ -68,16 +57,11 @@
 (defmethod y ((lst list))
   (second lst))
 
-(defmethod move ((p point))
-  (move-to (x p) (y p)))
-
-(defmethod line ((p point))
-  (line-to (x p) (y p)))
-
 (defmethod clone ((p point))
   (make-instance 'point 
 		 :x (x p)
 		 :y (y p)))
+
 (defun make-point (x y)
   (make-instance 'point :x x :y y))
 
@@ -99,32 +83,6 @@
 		   :initform nil))
   (:default-initargs :width 200 :height 200))
 
-(defmethod font-bounding-box ((chart chart) text)
-  "gets the bounding box for the given text on the given chart."
-  (with-font ()
-    (string-bounding-box text
-			 (label-size chart)
-			 *font*)))
-
-(defmethod font-height ((chart chart))
-  "gets the pixel height of the default font, at
-the size specified in the chart's label-size"
-  (aref (font-bounding-box chart "A") 3))
-
-(defmethod font-width ((chart chart) text)
-  "gets the pixel width of the default font, as the size
-specified in the chart's label-size"
-  (aref (font-bounding-box chart text) 2))
-
-(defun %render-chart (&optional (chart *current-chart*))
-  (set-fill chart) 
-  (clear-canvas);;fills in the background
-  
-  ;;ensure we have colors to auto-assign
-  (with-color-stack ()
-    (draw-chart chart)
-    (when (draw-legend-p chart)
-      (draw-legend chart))))
 
 (defgeneric draw-chart (chart)
   (:documentation "draws the chart, assuming a vecto canvas is open"))
@@ -146,85 +104,104 @@ specified in the chart's label-size"
 					       c))))
 	    (setf (color item) c))))
 
-(defgeneric set-fill (obj)
-  (:documentation "shortcuts for setting the vecto fill color"))
 
-(defmethod set-fill ((lst cons))
-  (apply #'set-rgb-fill lst))
-
-(defmethod set-fill ((chart chart))
-  (when-let (bg (background chart))
-    (set-fill bg)))
-
-(defmethod set-fill ((elem chart-element))
-  (set-fill (color elem)))
-
-(defgeneric set-stroke (obj)
-  (:documentation "shortcuts for setting the vecto stroke color"))
-
-(defmethod set-stroke ((lst cons))
-  (apply #'set-rgb-stroke lst))
-
-(defmethod set-stroke ((elem chart-element))
-  (set-stroke (color elem)))
-
-(defgeneric draw-legend (elem)
-  (:documentation "handles drawing legends for the given chart")
-  (:method ((chart chart))
-	   (draw-legend-labels chart)))
-
-(defgeneric legend-start-coords (chart box-size label-spacing)
-  (:documentation "specifies where legends should start drawing"))
-
-(defgeneric translate-to-next-label (chart w h)
-  (:documentation "translates the active vecto canvas to the next
-place a label should go")
-  (:method ((chart chart) w h)
-	   (declare (ignore chart w h))))
-
-(defun draw-legend-labels (chart)
-  "handles drawing legend labels"
-  (with-graphics-state
-    (with-font ()
-      (let* ((elems (chart-elements chart))
-	     (text-height (font-height chart))
-	     (box-size (* 2 text-height))
-	     (label-spacing (/ text-height 2)))
-	(set-font *font* (label-size chart)) ;set the font
-	(set-rgb-fill 0 0 0)		;text should be black
-	(apply #'translate (legend-start-coords chart box-size label-spacing))
-	(dolist (elem elems)
-	  ;;translate the origin to the next label
-	  (with-graphics-state
-	    (set-fill (color elem))
-	    (rounded-rectangle 0 label-spacing box-size box-size label-spacing text-height)
-	    (fill-and-stroke))
-	  (draw-string (+ box-size label-spacing)
-		       text-height
-		       (label elem))
-	  (translate-to-next-label chart
-				   (+ box-size label-spacing label-spacing
-				      (font-width chart (label elem)))
-				   (+ box-size label-spacing)))))))
-
-(defmethod save-chart-to-file (filename (chart chart))
-  "saves the chart to the file"
-  (with-canvas (:width (width chart)
-		       :height (height chart))
-    (setf (chart-elements chart)
-	  (reverse (chart-elements chart)) )
-    (%render-chart)
-    (save-png filename)))
+(defgeneric save-chart-to-file (filename chart)
+  (:documentation "saves the chart to the given file"))
 
 (defun save-file (filename)
   "saves the *current-chart* to the given file."
   (save-chart-to-file filename *current-chart*))
 
-(defmethod save-chart-to-stream (stream (chart chart))
-  (with-canvas (:width (width chart) :height (height chart))
-    (%render-chart)
-    (save-png-stream stream)))
+(defgeneric save-chart-to-stream (stream chart)
+  (:documentation "saves the chart to the given stream"))
 
 (defun save-stream (stream)
   "saves the *current-chart* to the given stream."
   (save-chart-to-stream stream *current-chart*))
+
+
+
+(defclass slice (chart-element)  
+  ((value :accessor value :initarg :value))
+  (:documentation "this is a slice of a pie chart"))
+
+(defun add-slice (label value &key color)
+  "add a slice to the pie"
+  (push (make-instance 'slice :color color :label label :value value)
+	(chart-elements *current-chart*)))
+
+(defclass series (chart-element)
+  ((data :accessor data
+	 :initarg :data
+	 :documentation "a list of (x y) pairs (as lists, not cons cells)")
+   (mode :accessor mode
+	 :initarg :mode
+	 :initform 'default
+	 :documentation "a flag for how to render this series"))  
+  (:documentation "represents a line on a line chart"))
+
+(defclass axis ()
+  ((label :accessor label
+	  :initarg :label
+	  :initform nil
+	  :documentation "description of this axis, usually the unit
+of measurement ($, s, km, etc)")   
+   (label-formatter :accessor label-formatter
+		    :initarg :label-formatter
+		    :initform #'princ-to-string
+		    :documentation "a function to format data points, for
+printing periodic values along the axis")
+   (draw-gridlines-p :accessor draw-gridlines-p
+		     :initarg :draw-gridlines-p
+		     :initform T
+		     :documentation "determines if grid-lines are drawn
+across the chart")
+   (data-interval :accessor data-interval
+		  :initarg :data-interval
+		  :initform nil)
+   (draw-zero-p :accessor draw-zero-p
+		:initarg :draw-zero-p
+		:documentation "Should we draw a line along the 0 of this axis?")
+   (mode :accessor mode
+	 :initarg :mode)
+   (angle :accessor angle
+	  :initarg :angle)
+   (scalefn :accessor scalefn
+	  :initarg :scalefn
+	  :documentation "Values will be passed through this function for scaling prior to display"))
+  (:documentation "represents an axis on a line chart"))
+
+(defmethod axis-label ((axis axis) data)
+  (funcall (label-formatter axis) data))
+
+
+(defun add-series (label data &key (color nil) (mode 'default))
+  "adds a series to the *current-chart*."
+  (push (make-instance 'series :label label :data data :color color :mode mode)
+	(chart-elements *current-chart*)))
+
+(defun set-axis (axis title &key (draw-gridlines-p T) 
+		 (label-formatter #'princ-to-string)
+		 (mode :value)
+		 (data-interval nil)
+		 (scalefn nil)
+		 (draw-zero-p nil)
+		 (angle nil))
+  "set the axis on the *current-chart*.  axis is either :x or :y.
+label-formatter is either a format-compatible control string or
+a function of 1 argument to control label formatting"
+  (let ((ax (make-instance 'axis
+			   :label title
+			   :draw-gridlines-p draw-gridlines-p
+			   :mode mode
+			   :scalefn scalefn
+			   :angle angle
+			   :draw-zero-p draw-zero-p
+			   :data-interval data-interval
+			   :label-formatter (etypecase label-formatter
+					      (string #'(lambda (v)
+							  (format nil label-formatter v)))
+					      (function label-formatter)))))
+    (ccase axis
+      (:x (setf (x-axis *current-chart*) ax))
+      (:y (setf (y-axis *current-chart*) ax)))))

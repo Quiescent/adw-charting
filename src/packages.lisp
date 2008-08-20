@@ -19,25 +19,8 @@
 (defpackage :net.acceleration.charting
     (:documentation "Charting library to make pretty graphs")
     (:nicknames #:adw-charting)
-    (:use #:cl #:vecto)
+    (:use #:cl)
     (:export
-       ;;generic
        :save-file
        :save-stream
-       ;;pie-chart related
-       :with-pie-chart
-       :add-slice
-       ;;line-chart related
-       :with-line-chart
-       :add-series
-       :set-axis
-       ;;bar-chart related
-       :with-bar-chart
-       ;;new google charts
-       :with-gchart
-       :chart-url
-       :add-feature
-       :add-features
-       :add-title
-       :make-color
     ))
