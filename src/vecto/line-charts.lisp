@@ -80,22 +80,6 @@ the Y axis")))
       (decf (x d-o) (* (x d-s) (x min))))
     d-o)))
 
-(defun find-chart-extremes (chart)
-  (find-extremes
-   (mapcan #'(lambda (series)
-	       (find-extremes (data series)))
-	   (chart-elements chart))))
-
-(defun find-extremes (data)
-  "takes a list of (x y) pairs, and returns the ((x-min y-min) (x-max y-max))"
-  (loop for (x y) in data
-	maximizing x into x-max
-	minimizing x into x-min
-	maximizing y into y-max
-	minimizing y into y-min
-	finally (return (list (list x-min y-min)
-			      (list x-max y-max)))))
-
 (defmethod has-data-p ((chart line-chart))
   (and (chart-elements chart)
        (some #'data (chart-elements chart))))

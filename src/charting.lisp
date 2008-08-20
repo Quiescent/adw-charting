@@ -205,3 +205,19 @@ a function of 1 argument to control label formatting"
     (ccase axis
       (:x (setf (x-axis *current-chart*) ax))
       (:y (setf (y-axis *current-chart*) ax)))))
+
+(defun find-chart-extremes (chart)
+  (find-extremes
+   (mapcan #'(lambda (series)
+	       (find-extremes (data series)))
+	   (chart-elements chart))))
+
+(defun find-extremes (data)
+  "takes a list of (x y) pairs, and returns the ((x-min y-min) (x-max y-max))"
+  (loop for (x y) in data
+	maximizing x into x-max
+	minimizing x into x-min
+	maximizing y into y-max
+	minimizing y into y-min
+	finally (return (list (list x-min y-min)
+			      (list x-max y-max)))))

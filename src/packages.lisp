@@ -23,4 +23,7 @@
     (:export
        :save-file
        :save-stream
+       :add-slice
+       :add-series
+       :set-axis
     ))
