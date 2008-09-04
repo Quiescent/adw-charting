@@ -59,71 +59,27 @@
     (centered-circle-path cx cy (1+ radius))
     (fill-and-stroke)
     
-    ;;draw the slices with a clipping path so we can avoid calcuting the circular bits.
-    (with-graphics-state		;make a new state to handle the clipping paths
-      (centered-circle-path cx cy (+ 1 radius))
-      (clip-path)
-      (end-path-no-op)
-      (if (has-data-p chart)	  
-	  (if (= 1 (length slices));;only one slice, draw all over the damn thing and call it good.
-	      (progn 
-		(set-fill (first slices))
-		(rectangle 0 0 width height)
-		(fill-path)) 
-	      (let* ((bigr (* 3 radius));; more than one slice, go for it
-		     (x (+ cx radius))
-		     (y cy)
-		     (angle 0)
-		     (val-to-radians (/ (* 2 pi) (total chart))))
-		(dolist (item (reverse slices))
-		  (let* ((color (color item))
-			 (segment (* val-to-radians (value item)))
-			 (slice-size (+ angle segment))
-			 (endx (+ cx (* bigr (cos slice-size))))
-			 (endy (+ cy (* bigr (sin slice-size)))))		    
-		    ;;draw the sector as a huge chunk, the clipping path will take care of making it round
-		    (move-to cx cy)
-		    (line-to x y)
-		    ;;;assumes slices drawn counter-clockwise, starting at 3o'clock
-		    
-		    ;;draw to the nearest corner of the graph from our piece
-		    (line-to (if (>= x cx)
-				 (width chart)
-				 0)
-			     (if (>= y cy)
-				 (height chart)
-				 0))
-		    ;;if we cross from NE to NW, go up to the NW corner first
-		    (when (and (>= x cx)
-			       (>= y cy)
-			       (< (/ pi 4) segment))
-		      (line-to 0 (height chart)))
-		    
-		    ;;if we cross from W to E, go up to the SE corner first
-		    (when (and (< x cx)
-			       (>= endx cx))
-		      (line-to (width chart) 0))
-		    
-		    ;;if we cross from N to S, go down to the SW corner
-		    (when (and (>= y cy)
-			       (< endy cy))
-		      (line-to 0 0)
-		      ;;if we cross from SE to SW, so to SE corner		      
-		      (when (> endx cx )
-			(line-to (width chart) 0)))	    
-		    
-		    ;;now to our end point
-		    (line-to endx endy)
-		    (line-to cx cy)
-		    (close-subpath)
-		    (set-fill color)
-		    (fill-and-stroke)
-		    ;;update our counters
-		    (setf x endx
-			  y endy
-			  angle slice-size)))))
-	  (setf (draw-legend-p chart) nil);;no data, supress the legend
-	  ))))
+
+
+    (if (has-data-p chart)	  
+	(if (= 1 (length slices)) ;;only one slice, draw all over the damn thing and call it good.
+	    (progn
+	      (set-fill (first slices))
+	      (rectangle 0 0 width height)
+	      (fill-path))
+	    ;; more than one slice, go for it
+	    (let ((angle1 0)
+		  (val-to-radians (/ (* 2 pi) (total chart))))
+	      (dolist (item slices)
+		(let ((angle2 (+ angle1 (* val-to-radians (value item)))))
+		  (set-fill (color item))
+		  ;;start in the center
+		  (move-to cx cy)
+		  (arc cx cy radius angle1 angle2)
+		  (fill-and-stroke)
+		  (setf angle1 angle2))))) 
+	(setf (draw-legend-p chart) nil) ;;no data, supress the legend
+	)))
 
 (defmacro with-pie-chart ((width height &key (background ''(1 1 1))) &body body)
   `(let ((*current-chart* (make-instance 'pie-chart
@@ -131,3 +87,4 @@
 					 :height ,height
 					 :background ,background)))
     ,@body))
+
