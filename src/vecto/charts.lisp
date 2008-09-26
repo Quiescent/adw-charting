@@ -1,16 +1,18 @@
 (in-package :adw-charting)
 
-(defvar *default-font-file* "FreeSans.ttf")
+(defvar *default-font-file*
+  (merge-pathnames
+   "FreeSans.ttf"
+   (asdf:component-pathname
+    (asdf:find-system :adw-charting))))
+
 (defvar *current-font* nil "a font object")
 (defvar *font* nil "a font object")
 
 (eval-when (:compile-toplevel :load-toplevel :execute)
   (defmacro with-font ((&optional font-file) &body body)
     "ensures *font* is a valid font loader."
-    `(let ((*font* (or *font* (get-font (or ,font-file (merge-pathnames
-							*default-font-file*
-							(asdf:component-pathname
-							 (asdf:find-system :adw-charting))))))))
+    `(let ((*font* (or *font* (get-font (or ,font-file *default-font-file*)))))
       ,@body)))
 
 (defclass vchart (chart)
