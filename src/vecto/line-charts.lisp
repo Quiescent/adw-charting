@@ -296,8 +296,11 @@ the Y axis")))
 	(destructuring-bind ((min-x min-y) (max-x max-y))
 	    (find-chart-extremes chart)
 	  
-	  (setf (data-min graph) (make-point min-x min-y))
-	  (setf (data-max graph) (make-point max-x max-y))
+	  (setf (data-min graph) (make-point min-x
+					     (* 0.99 (if (draw-zero-p (y-axis chart))
+						 (min 0 min-y)
+						 min-y))))
+	  (setf (data-max graph) (make-point max-x (* 1.01 max-y)))
 	  ;;adjust our graph region to account for labels
 	  (when-let (axis (y-axis chart))
 	    (let* ((text-width (loop for y in (list min-y max-y)
