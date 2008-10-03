@@ -20,31 +20,36 @@
 
 (defclass bar-chart (line-chart) ())
 
-(defun bar-width (chart)
-  (declare (ignore chart))
-  1)
+(defvar *bar-width* 1)
+
+(defun number-of-bars (chart)
+  (loop for series in (chart-elements chart)
+	sum (length (data series))))
 
 (defun draw-bar (x y bars-drawn chart graph)
+  (declare (ignore chart))
   (let* ((gp (dp->gp graph x y))
 	 (rx (+ (x gp)
-		(* (bar-width chart)
+		(* *bar-width*
 		   bars-drawn)))
 	 (ry (y (data-origin graph)))
-	 (rw (bar-width chart))
+	 (rw *bar-width*)
 	 (rh (- (y gp)
 		(y (data-origin graph)))))
     (rectangle rx ry rw rh)
     (fill-path)))
 
 (defmethod draw-series ((chart bar-chart) graph)
-  (let ((bars-drawn (make-hash-table)))
+  (let ((bars-drawn (make-hash-table))
+	(*bar-width* (truncate (/ (* 0.5 (width graph))
+				  (number-of-bars chart)))))
     (dolist (series (chart-elements chart))
       (if (eq (mode series) 'default)
 	  (draw-bar-series series graph bars-drawn chart)
 	  (draw-line-series series graph)))))
 
 (defun draw-bar-series (series graph bars-drawn chart)
-  (decf (width graph) (* 2(bar-width chart)))
+  (decf (width graph) (* 2 *bar-width*))
   (with-graphics-state
     (set-line-width 2)
     (set-fill series)
@@ -52,7 +57,7 @@
 	  do (draw-bar x y (gethash x bars-drawn 0) chart graph )
 	  (incf (gethash x bars-drawn 0)))
     )
-  (incf (width graph) (* 2 (bar-width chart))))
+  (incf (width graph) (* 2 *bar-width*)))
 
 (defmacro with-bar-chart ((width height &key (background ''(1 1 1))) &body body)
   "Evaluates body with a chart established with the specified
