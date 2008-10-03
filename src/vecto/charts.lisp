@@ -25,7 +25,7 @@
   (line-to (x p) (y p)))
 
 (defmethod font-bounding-box ((chart chart) text)
-  "gets the bounding box for the given text on the given chart."
+  "gets the bounding box for the given text on the given chart."  
   (with-font ()
     (string-bounding-box text
 			 (label-size chart)

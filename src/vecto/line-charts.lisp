@@ -178,8 +178,9 @@ the Y axis")))
 				  (- (floor (log diff 10))
 				     1))))
 	 (desired-text-space (* 2 text-height)))
+
     ;;be sure the interval has plenty of room in it for our text-height
-    (loop for i = 1 then (1+ i)
+    (loop for i from 1
 	  until (< desired-text-space 
 		   (* i data-interval (y (data-scale graph))))
 	  finally (setf data-interval (* i data-interval)))
