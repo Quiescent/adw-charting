@@ -168,15 +168,19 @@ the Y axis")))
 				    (margin (chart graph)))))))
     lst))
 
+
+(defun order-of-magnitude (n)
+  (if (zerop n)
+      1
+      (expt 10 (floor (log n 10)))))
+
 (defun calculate-y-axes (graph text-height y-axis-labels-x)
   (let* ((min-y (y (data-min graph)))
 	 (max-y (y (data-max graph)))
 	 (axis (y-axis (chart graph)))
 	 (diff (abs (- min-y max-y)))
 	 (data-interval (or (data-interval axis)
-			    (expt 10 
-				  (- (floor (log diff 10))
-				     1))))
+			    (/ (order-of-magnitude diff) 8)))
 	 (desired-text-space (* 2 text-height)))
 
     ;;be sure the interval has plenty of room in it for our text-height
@@ -185,20 +189,18 @@ the Y axis")))
 		   (* i data-interval (y (data-scale graph))))
 	  finally (setf data-interval (* i data-interval)))
 
-    (loop for (txt gp) in
-	  (nconc
-	   (loop for y = 0 then (+ y data-interval)
-		 for gy = (y (dp->gp graph 0 y))
-		 until (> gy (+ (height graph) (y graph)))
-		 collect (list (axis-label axis y)
-			       gy))
-	   (loop for y = (- data-interval) then (- y data-interval)
-		 until (< y min-y)
-		 collect (list (axis-label axis y) 
-			       (y (dp->gp graph 0 y)))))
-	  collect (list txt y-axis-labels-x gp)
-	  
-	  )))
+    (let* ((interval-magnitude (order-of-magnitude data-interval))
+	   (initial-y (+ 0
+			 (* interval-magnitude
+			    (truncate (/ min-y interval-magnitude))))))
+
+      (loop for y = initial-y then (+ y data-interval)
+	    for gy = (y (dp->gp graph 0 y))
+	    until (> gy (+ (height graph) (y graph)))
+	    when (> gy (y graph))
+	      collect (list (axis-label axis y)
+			  y-axis-labels-x
+			  gy)))))
 
 (defun draw-graph-area (graph &optional (border-only nil))
   "draws the graph aread"
