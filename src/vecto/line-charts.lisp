@@ -58,7 +58,7 @@ the Y axis")))
     (make-point (/ w
 		   (- (x max) (x min)))
 		(/ h
-		   (* 1.1 (- (y max) (min 0 (y min))))))))
+		   (- (y max) (y min))))))
 
 (defmethod data-origin ((graph graph-region))
   (with-accessors ((x x)
@@ -68,14 +68,19 @@ the Y axis")))
 		   (max data-max)) graph
   (let ((d-o (make-point x y)))
     
-    ;;adjust the origins if we need to
-    
+
+    ;;if we have a negative min y, move the y 0 point up
     (when (minusp (y min))
       (incf (y d-o) (abs (* (y d-s) (y min)))))
+
+    (when (plusp (y min))
+      (decf (y d-o) (abs (* (y d-s) (y min)))))
     
+    ;;if we have a negative min x, move the x 0 point right
     (when (minusp (x min))
       (incf (x d-o) (abs (* (x d-s) (x min)))))
-    
+
+    ;;if we have a positive min x, move the x 0 point left
     (when (plusp (x min))
       (decf (x d-o) (* (x d-s) (x min))))
     d-o)))
