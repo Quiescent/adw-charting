@@ -128,3 +128,17 @@ place a label should go")
   (with-canvas (:width (width chart) :height (height chart))
     (%render-chart)
     (save-png-stream stream)))
+
+(defparameter +chart-types+ '((:line line-chart)
+			     (:bar bar-chart)
+			     (:pie pie-chart)))
+
+
+(defmacro with-chart ((type width height &key (background ''(1 1 1))) &body body)
+  "Evaluates body with a chart established with the specified
+dimensions as the target for chart commands, with the specified background."
+  `(let ((*current-chart*  (make-instance (find-class (cadr (assoc ,type +chart-types+)))
+					  :width ,width
+					  :height ,height
+					  :background ,background)))
+    ,@body))
