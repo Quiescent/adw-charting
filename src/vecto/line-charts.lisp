@@ -190,9 +190,8 @@ the Y axis")))
 	  finally (setf data-interval (* i data-interval)))
 
     (let* ((interval-magnitude (order-of-magnitude data-interval))
-	   (initial-y (+ 0
-			 (* interval-magnitude
-			    (truncate (/ min-y interval-magnitude))))))
+	   (initial-y (* interval-magnitude
+			 (truncate (/ min-y interval-magnitude)))))
 
       (loop for y = initial-y then (+ y data-interval)
 	    for gy = (y (dp->gp graph 0 y))
