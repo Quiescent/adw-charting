@@ -37,5 +37,7 @@
 					       (:file "charts" :depends-on ("packages"))
 					       (:file "pie-charts" :depends-on ("charts"))
 					       (:file "line-charts" :depends-on ("charts"))
-					       (:file "bar-charts" :depends-on ("line-charts"))))) )))
+					       (:file "bar-charts" :depends-on ("line-charts"))
+					       (:file "star-rating-chart" :depends-on ("charts"))
+					       ))))))
 
