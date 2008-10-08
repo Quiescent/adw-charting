@@ -31,7 +31,7 @@
 	       (* (cos angle) size)))))
 
 (defun draw-star (filled-percent)
-  "draws the star, starting at the left-most point"
+  "draws one star, filling it a given percent"
 
 
   (with-graphics-state
@@ -44,13 +44,14 @@
 
     (when (< filled-percent 1)
       ;;draw a slightly smaller star to wipe out the
-      ;;interior of the full star
+      ;;interior of the full star, leaving a border
       (with-graphics-state
 	(set-fill (background *current-chart*))
 	(%draw-star-path .4)
 	(fill-path))
 
-      ;;re-fill in the full star, clipped to how full we're supposed to be    
+      ;;re-fill in the full star, clipped to how full we're supposed to be
+      ;;wiping out part of the blanked interior
       (when (plusp filled-percent)
 	(rectangle 0 0 (* filled-percent *star-width*) (height *current-chart*))
 	(clip-path)
