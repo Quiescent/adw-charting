@@ -130,8 +130,9 @@ place a label should go")
     (save-png-stream stream)))
 
 (defparameter +chart-types+ '((:line line-chart)
-			     (:bar bar-chart)
-			     (:pie pie-chart)))
+			      (:bar bar-chart)
+			      (:pie pie-chart)
+			      (:star-rating star-rating-chart)))
 
 
 (defmacro with-chart ((type width height &key (background ''(1 1 1))) &body body)
