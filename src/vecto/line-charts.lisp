@@ -224,11 +224,17 @@ the Y axis")))
 (defmethod dp->gp ((graph graph-region) x y)
   "convert a point from data space to graph space"
   (with-accessors ((d-o data-origin)
-		   (d-s data-scale)) graph
+		   (d-s data-scale)
+		   (gy y)
+		   (height height)) graph
     (make-point (+ (x d-o) 
 		   (* (x d-s) x))
-		(+ (y d-o) 
-		   (* (y d-s) y)))))
+
+		(max (y d-o)
+		     (+ (y d-o) 
+			(* (y d-s) y)))
+
+		)))
 
 (defmethod gp->dp ((graph graph-region) x y)
   "convert a point from graph space to data space"
