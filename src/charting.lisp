@@ -180,7 +180,7 @@ across the chart")
   (push (make-instance 'series :label label :data data :color color :mode mode)
 	(chart-elements *current-chart*)))
 
-(defun set-axis (axis title &key (draw-gridlines-p T) 
+(defun set-axis (axis title &key (draw-gridlines-p nil) 
 		 (label-formatter #'princ-to-string)
 		 (mode :value)
 		 (data-interval nil)
