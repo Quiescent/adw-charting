@@ -1,0 +1,89 @@
+ADW-CHARTING -*- mode:org -*-
+#+TITLE: ADW-Charting: simple charts in Common Lisp
+#+AUTHOR: Ryan Davis
+#+EMAIL: ryan@acceleration.net
+#+OPTIONS: toc:1
+	 
+* Introduction
+ADW-Charting is a simple chart drawing library for quickly creating 
+reasonable-looking pie charts. It presents a 
+function-oriented interface similar to [[http://www.xach.com/lisp/vecto/][Vecto]], 
+and saves results to PNG. Since ADW-Charting and all supporting 
+libraries are written completely in Common Lisp, without 
+depending on external non-Lisp libraries, it should work 
+in any Common Lisp environment. ADW-Charting is available 
+under a BSD-like license. The 'ADW' in the name is 
+referencing my employer, [[http://www.acceleration.net][Acceleration.net]], who has 
+sponsored much of this work. The current version is 0.7, 
+released on January 28th, 2008.
+
+The canonical location for ADW-Charting is http://common-lisp.net/project/adw-charting/
+
+Download shortcut:
+http://common-lisp.net/project/adw-charting/adw-charting.tar.gz
+
+* Installation
+ADW-Charting is not yet asdf-installable, but that is on the [[file:todo.org][todo list]].
+For now, download the tarball at http://common-lisp.net/project/adw-charting/adw-charting.tar.gz
+or go straight to the darcs repository located at http://common-lisp.net/project/adw-charting/darcs/adw-charting
+* Rendering Backends
+ADW-Charting has two rendering backends, one using Vecto to create 
+PNG files directly, another using the Google Chart API to let
+Google handle the drawing duties.  Each has it's pros and cons, and is
+activated by loading a different .asd file.
+** Vecto backend, adw-charting-vecto.asd
+Pros:
+- pure lisp solution, total control is available
+- size and data density are only limited by computing resources
+Cons:
+- conses an awful lot
+- generated PNGs don't display in Microsoft image viewer, must be viewed via a browser (IE shows them fine)
+** Google backend, adw-charing-google.asd
+Pros:
+- much less CPU intensive
+- images are served using Google's bandwidth, not yours
+- simple charts frequently look better
+- more chart features are available, although many aren't yet implemented via ADW-Charting
+Cons:
+- limited to 300,000 pixels per image
+- Google's label placement can be screwy sometimes
+- depends on a third party service that might be shut off tomorrow
+- any sensitive information would travel to another server via http
+- can't graph large datasets (all data has to be passed on the querystring)
+* Sample Usage
+** minimal pie chart
+*** vecto backend
+#+begin_example
+(with-chart (:pie 300 200)
+  (add-slice "A" 5.0d0)
+  (add-slice "B" 2.0d0)
+  (save-file "vecto-minimal-pie-chart.png"))
+#+end_example
+[[file:vecto-minimal-pie-chart.png]]
+ 
+*** google backend
+#+begin_example
+(with-gchart (:pie 300 200)
+  (add-slice "A" 5.0d0)
+  (add-slice "B" 2.0d0)
+  (add-features :label)
+  (save-file "google-minimal-pie-chart.png"))
+#+end_example
+file:google-minimal-pie-chart.png
+* Caveats / Gotchas
+- All colors are RGB, represented as a list of 3 numbers between 0 and 1, eg:'(1 .5 .3)
+- The bounds on a pie chart are a bit goofy, as the radius of the pie is currently only determined by the height of the chart. This means a square image will cut off the legend.
+- The font used for all the text is included in the distribution, some random .ttf file pulled from the debian freefont library. You can specify the font file using the *default-font-file* unexported variable. I'm using a with-font macro internally that could solve this one.
+* Feedback
+If you have any questions, comments, bug reports, or other 
+feedback regarding ADW-Charting, please [[mailto:ryan@acceleration.net][email me]].
+
+Progress and previews are occasionally available on my blog:
+http://ryepup.unwashedmeme.com/blog/category/adw-charting/
+
+* API reference
+* Acknoledgements
+- Zach Beane for creating [[http://www.xach.com/lisp/vecto/][Vecto]]
+- Peter Seibel for his excellent book, [[http://gigamonkeys.com/book][Practical Common Lisp]]
+- Edi Weitz and Zach Beane for providing good examples on how to write and document lisp libraries
+- Co-workers [[http://the.unwashedmeme.com][Nathan]], [[http://russ.unwashedmeme.com/blog][Russ]], and Rebecca for advice and code reviews

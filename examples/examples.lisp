@@ -22,10 +22,20 @@
 (in-package #:net.acceleration.adw-charting-examples)
 
 (defun minimal-pie-chart ()  
-  (with-pie-chart (300 200)
+  (with-chart (:pie 300 200)
     (add-slice "A" 5.0d0)
     (add-slice "B" 2.0d0)
-    (save-file "minimal-pie-chart.png")))
+    (save-file "vecto-minimal-pie-chart.png")))
+
+(defun minimal-pie-gchart ()  
+  (with-gchart (:pie 300 200)
+    (add-slice "A" 5.0d0)
+    (add-slice "B" 2.0d0)
+    (add-features :label)
+    (save-file "google-minimal-pie-chart.png")))
+
+
+
 
 (defun bigger-pie-chart ()  
   (with-pie-chart (300 200)
