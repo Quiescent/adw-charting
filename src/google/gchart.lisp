@@ -317,7 +317,7 @@ it should be rendering"
 		       :element-type 'unsigned-byte
 		       :if-does-not-exist :create
 		       :if-exists :supersede)
-    (save-chart-to-stream chart)
+    (save-chart-to-stream dst chart)
     (truename filename)))
 
 (defun chart-url ()
