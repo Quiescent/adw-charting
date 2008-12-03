@@ -345,3 +345,25 @@ it should be rendering"
 			 :height ,height)))
      (with-color-stack ()
        ,@body)))
+
+
+(defun google-o-meter (percentage width &key label colors show-percentage)
+  (let ((params (make-parameter-collection))
+	;;if the percentage is specifed as 0-1, multiply by 100
+	(percentage (if (> 1 percentage)
+			(* 100 percentage)
+			percentage)))
+    
+    (flet ((add-param (k v)
+	     (setf (gethash k params) v)))
+      (add-param :chs (format nil "~ax~a" width (truncate (* width .5))))
+      (add-param :cht "gom")
+      (add-param :chd (format nil "t:~a" (truncate percentage)))
+      (when (and colors (< 1 (length colors)))
+	(add-param :chco (format nil "~{~a~^,~}" colors)))
+      (if label
+	  (add-param :chl label)
+	  (when show-percentage
+	    (add-param :chl (format nil "~D%" (truncate percentage)))))
+      
+      (build-chart-url params))))
