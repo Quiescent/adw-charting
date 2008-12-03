@@ -18,11 +18,14 @@
 
 (in-package :adw-charting)
 
+(defun make-parameter-collection ()
+  (make-hash-table :test 'equal))
+
 (defclass gchart (chart)
   ((chart-type :accessor chart-type
 	       :initarg :chart-type)
    (parameters :accessor parameters
-	       :initform (make-hash-table :test 'equal)
+	       :initform (make-parameter-collection)
 	       :initarg :parameters)
    (axes :accessor axes
 	 :initform (make-hash-table))))
@@ -293,7 +296,12 @@
 (defmethod build-parameters ((chart gchart))  
   "returns an alist that defines to google what
 it should be rendering"
-  (loop for k being the hash-keys in (parameters chart) using (hash-value v)
+  (build-parameters (parameters chart)))
+
+(defmethod build-parameters ((params hash-table))  
+  "returns an alist that defines to google what
+it should be rendering"
+  (loop for k being the hash-keys in params using (hash-value v)
 	collect (cons (prepare-key k) (finalize-parameter k v))))
 
 (defmethod save-chart-to-stream (stream (chart gchart))
@@ -314,13 +322,19 @@ it should be rendering"
 
 (defun chart-url ()
   "returns the URL for the current google chart"
-  (ensure-default-parameters *current-chart*)
-  (concatenate 'string
-	       +google-chart-url+
-	       "?"
-	       (drakma::alist-to-url-encoded-string
-		(build-parameters *current-chart*)
-		drakma:*drakma-default-external-format*)))
+  (build-chart-url *current-chart*))
+
+(defgeneric build-chart-url (thing)
+  (:method ((chart gchart))
+    (ensure-default-parameters chart)
+    (build-chart-url (parameters chart)))
+  (:method ((params hash-table))
+    (concatenate 'string
+		 +google-chart-url+
+		 "?"
+		 (drakma::alist-to-url-encoded-string
+		  (build-parameters params)
+		  drakma:*drakma-default-external-format*))))
 
 (defmacro with-gchart ((type width height) &body body)
   "creates a new context with a gchart of the given type, width, and height."
