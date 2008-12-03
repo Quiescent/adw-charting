@@ -3,7 +3,7 @@ ADW-CHARTING
 #+STARTUP: logdone
 #+AUTHOR: Ryan Davis
 #+EMAIL: ryan@acceleration.net
-#+TITLE: ADW-Charting TODO
+#+TITLE: ADW-Charting Plans
 #+OPTIONS: num:nil
 
 * Fall 2008
