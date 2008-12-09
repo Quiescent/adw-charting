@@ -36,7 +36,8 @@
 			(:v-bar .  "bvs")
 			(:h-bar . "bhs")
 			(:v-gbar .  "bvg")
-			(:h-gbar . "bhg")))
+			(:h-gbar . "bhg")
+			(:google-meter . "gom")))
 
 (defparameter +google-chart-url+ "http://chart.apis.google.com/chart")
 
@@ -59,46 +60,49 @@
 (defmethod build-data ((chart gchart))
   "helper to build the list of data"
   (case (chart-type chart)
-	((:pie :pie-3d) (format nil
-				"t:~{~F~^,~}"
-				(normalize-elements chart)))
-	(:line
-	 ;;pairs of X | Y, normalized to 0-100 for google's chart algorithms
-	 (format nil "t:~{~a~^|~}"
-		 (loop for (exes wyes series) in (normalized-series chart)
-		    collect (format nil
-				    "~{~,2F~^,~}|~{~,2F~^,~}"
-				    exes wyes))))
-	((:v-bar :h-bar :v-gbar :h-gbar)
-	 ;;these want the bars specified as wyes1|wyes2|wyesN, so
-	 ;;get all the lists of wyes sorted out with 0s for the missing values
-	 (format nil "t:~{~a~^|~}"
-		 (let ((xys (normalized-series chart))
-		       (all-exes nil))
-		   ;;assemble list of all exes
-		   (dolist (xy xys)
-		     (dolist (x (first xy))
-		       (unless (member x all-exes)
-			 (push x all-exes))))
-		   (setf all-exes (sort all-exes #'<))
-		   (loop for (exes wyes series) in xys
-			 for idx from 0
-			 do
-			 (when (eql (mode series) :line)
-			   (append-parameter :chm
-					     (format nil "D,~a,~D,0,2,1"
-						     (make-html-color (color series))
-						     idx)
+    (:google-meter (format nil
+			   "t:~D"
+			   (value (first (chart-elements chart)))))
+    ((:pie :pie-3d) (format nil
+			    "t:~{~F~^,~}"
+			    (normalize-elements chart)))
+    (:line
+       ;;pairs of X | Y, normalized to 0-100 for google's chart algorithms
+       (format nil "t:~{~a~^|~}"
+	       (loop for (exes wyes series) in (normalized-series chart)
+		     collect (format nil
+				     "~{~,2F~^,~}|~{~,2F~^,~}"
+				     exes wyes))))
+    ((:v-bar :h-bar :v-gbar :h-gbar)
+       ;;these want the bars specified as wyes1|wyes2|wyesN, so
+       ;;get all the lists of wyes sorted out with 0s for the missing values
+       (format nil "t:~{~a~^|~}"
+	       (let ((xys (normalized-series chart))
+		     (all-exes nil))
+		 ;;assemble list of all exes
+		 (dolist (xy xys)
+		   (dolist (x (first xy))
+		     (unless (member x all-exes)
+		       (push x all-exes))))
+		 (setf all-exes (sort all-exes #'<))
+		 (loop for (exes wyes series) in xys
+		       for idx from 0
+		       do
+		    (when (eql (mode series) :line)
+		      (append-parameter :chm
+					(format nil "D,~a,~D,0,2,1"
+						(make-html-color (color series))
+						idx)
 
-					     chart))
+					chart))
 			 
-			 collect
-			 (format nil "~{~D~^,~}"
-				 (mapcar #'(lambda (x)					    
-					     (or (when-let (idx (position x exes))
-						   (truncate (nth idx wyes)))
-						 0))
-					 all-exes))))))))
+		       collect
+		    (format nil "~{~D~^,~}"
+				(mapcar #'(lambda (x)					    
+					    (or (when-let (idx (position x exes))
+						  (truncate (nth idx wyes)))
+						0))
+					all-exes))))))))
 
 (defun interpolate (min max val &key (interpolated-max 100) (interpolated-min 0))
   (+ interpolated-min
@@ -163,8 +167,8 @@
 
 (defmethod add-feature ((feature-name (eql :label)))
   (set-parameter *current-chart* (case (chart-type *current-chart*)
-				   ((:pie :pie-3d) "chl")
-				   (T "chdl"))
+				   ((:pie :pie-3d :google-meter) :chl)
+				   (T :chdl))
 		 (build-labels *current-chart*)))
 
 (defmethod add-feature ((feature-name (eql :transparent-background)))
