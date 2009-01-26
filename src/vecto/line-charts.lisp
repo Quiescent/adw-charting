@@ -229,8 +229,7 @@ the Y axis")))
 		   (height height)) graph
     (make-point (+ (x d-o) 
 		   (* (x d-s) x))
-
-		(max (y d-o)
+		(max (y graph)
 		     (+ (y d-o) 
 			(* (y d-s) y)))
 
