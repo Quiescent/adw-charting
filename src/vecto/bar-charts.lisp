@@ -41,8 +41,9 @@
 
 (defmethod draw-series ((chart bar-chart) graph)
   (let ((bars-drawn (make-hash-table))
-	(*bar-width* (truncate (/ (* 0.5 (width graph))
-				  (number-of-bars chart)))))
+	(*bar-width* (max 1
+			  (truncate (/ (* 0.5 (width graph))
+				       (number-of-bars chart))))))
     (dolist (series (chart-elements chart))
       (if (eq (mode series) 'default)
 	  (draw-bar-series series graph bars-drawn chart)
