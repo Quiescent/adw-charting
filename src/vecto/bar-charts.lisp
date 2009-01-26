@@ -56,8 +56,7 @@
     (set-fill series)
     (loop for (x y) in (data series)
 	  do (draw-bar x y (gethash x bars-drawn 0) chart graph )
-	  (incf (gethash x bars-drawn 0)))
-    )
+	  (incf (gethash x bars-drawn 0))))
   (incf (width graph) (* 2 *bar-width*)))
 
 (defmacro with-bar-chart ((width height &key (background ''(1 1 1))) &body body)

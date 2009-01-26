@@ -231,9 +231,7 @@ the Y axis")))
 		   (* (x d-s) x))
 		(max (y graph)
 		     (+ (y d-o) 
-			(* (y d-s) y)))
-
-		)))
+			(* (y d-s) y))))))
 
 (defmethod gp->dp ((graph graph-region) x y)
   "convert a point from graph space to data space"
