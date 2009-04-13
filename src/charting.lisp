@@ -175,18 +175,18 @@ across the chart")
   (funcall (label-formatter axis) data))
 
 
-(defun add-series (label data &key (color nil) (mode 'default))
+(defun add-series (label data &key color (mode 'default))
   "adds a series to the *current-chart*."
   (push (make-instance 'series :label label :data data :color color :mode mode)
 	(chart-elements *current-chart*)))
 
-(defun set-axis (axis title &key (draw-gridlines-p nil) 
+(defun set-axis (axis title &key draw-gridlines-p
 		 (label-formatter #'princ-to-string)
 		 (mode :value)
-		 (data-interval nil)
-		 (scalefn nil)
-		 (draw-zero-p nil)
-		 (angle nil))
+		 data-interval
+		 scalefn
+		 draw-zero-p
+		 angle)
   "set the axis on the *current-chart*.  axis is either :x or :y.
 label-formatter is either a format-compatible control string or
 a function of 1 argument to control label formatting"
