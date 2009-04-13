@@ -161,7 +161,7 @@
 		   (mapcar #'make-html-color
 			   (mapcar #'color (chart-elements chart)))))))
 
-(defparameter +chart-features+ '(:label :transparent-background :label-percentages))
+(defparameter +chart-features+ '(:label :transparent-background :adjusted-zero :data-scaling :label-percentages))
 
 (defgeneric add-feature (feature-name))
 
