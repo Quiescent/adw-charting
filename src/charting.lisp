@@ -207,10 +207,19 @@ a function of 1 argument to control label formatting"
       (:y (setf (y-axis *current-chart*) ax)))))
 
 (defun find-chart-extremes (chart)
-  (find-extremes
-   (mapcan #'(lambda (series)
-	       (find-extremes (data series)))
-	   (chart-elements chart))))
+  (let ((data-minmax (find-extremes
+		      (mapcan #'(lambda (series)
+				  (find-extremes (data series)))
+			      (chart-elements chart))))
+	(x-zero (draw-zero-p (x-axis chart)))
+	(y-zero (draw-zero-p (y-axis chart))))
+    (if (or x-zero y-zero)
+	(destructuring-bind ((min-x min-y) (max-x max-y)) data-minmax
+	  (declare (ignore max-x max-y))
+	  (when x-zero (push (list 0 min-y) data-minmax))
+	  (when y-zero (push (list min-x 0) data-minmax))
+	  (find-extremes data-minmax))
+	data-minmax)))
 
 (defun find-extremes (data)
   "takes a list of (x y) pairs, and returns the ((x-min y-min) (x-max y-max))"

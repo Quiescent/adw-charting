@@ -27,6 +27,16 @@
    (parameters :accessor parameters
 	       :initform (make-parameter-collection)
 	       :initarg :parameters)
+   (x-axis :accessor x-axis
+	   :initarg :x-axis
+	   :initform nil
+	   :documentation "an axis object to determine formatting for
+the X axis")
+   (y-axis :accessor y-axis
+	   :initarg :y-axis
+	   :initform nil
+	   :documentation "and axis object to determine formatting for
+the Y axis")
    (axes :accessor axes
 	 :initform (make-hash-table))))
 
@@ -243,13 +253,13 @@
 	  (param (if (eql :auto (data-interval axis))
 		     :chxr :chxl)))
       (setf (gethash idx (axes chart)) axis)
-      (append-parameter param (list idx valfn (label-formatter axis)))))
+      (append-parameter param (list idx valfn (label-formatter axis) (draw-zero-p axis)))))
 
-(defmethod (setf x-axis) (ax (chart gchart))
+(defmethod (setf x-axis) :before (ax (chart gchart))
   (add-axis "x" #'x ax chart))
 
-(defmethod (setf y-axis) (ax (chart gchart))
-    (add-axis "y" #'y ax chart))
+(defmethod (setf y-axis) :before (ax (chart gchart))
+  (add-axis "y" #'y ax chart))
 
 (defun add-features (&rest names)
   (mapc #'add-feature names))
@@ -273,28 +283,37 @@
 
 (defmethod finalize-parameter ((key (eql :chxl)) val)
   (format nil "~{~a~^|~}"
-	  (loop for (idx valfn formatfn) in val
+	  (loop for (idx valfn formatfn draw-zero-p) in val
 		collect (format nil "~D:|~{~a~^|~}" idx
 				(mapcar formatfn
 					(sort
 					 (remove-duplicates
-					  (loop for elem in (chart-elements *current-chart*)
-						nconc (mapcar valfn (data elem))))
+					  (let ((vals (loop for elem in (chart-elements *current-chart*)
+							    nconc (mapcar valfn (data elem)))))
+					    ;;if we want to draw 0, add it to the list
+					    (when draw-zero-p (push 0 vals))
+					    vals))
 					 #'<))))))
 
 (defmethod finalize-parameter ((key (eql :chxr)) val)
   (let ((all-data (mapcan #'data (chart-elements *current-chart*))))
     (format nil "~{~a~^|~}"
-	    (loop for (idx valfn formatfn) in val		 
-	       collect (format nil "~D,~{~,2F~^,~}" idx
-			       	;;find the function for scaling this axis, scale
-			       (mapcar (or (scalefn (gethash idx (axes *current-chart*)))
-					   #'identity)
-				       ;;find the global min/max
-				       (loop for x in (mapcar valfn all-data)
-					  minimizing x into min
-					  maximizing x into max
-					  finally (return (list min max)))))))))
+	    (loop for (idx valfn formatfn draw-zero-p) in val		 
+	       collect (format nil "~D,~{~,2F~^,~}" idx			       
+
+			       (let ((vals (mapcar valfn all-data)))
+				 ;;add zero if we want to
+				 (when draw-zero-p (push 0 vals))
+				 ;;find the global min/max				 
+				 (let ((minmax (loop for x in vals
+						     minimizing x into min
+						     maximizing x into max
+						     finally (return (list min max)))))
+				   
+				   ;;find the function for scaling this axis, scale
+				   (if-let (scalefn (scalefn (gethash idx (axes *current-chart*))))
+				     (mapcar scalefn minmax)
+				     minmax))))))))
 
 
 (defmethod build-parameters ((chart gchart))  
