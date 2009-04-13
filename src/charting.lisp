@@ -211,8 +211,10 @@ a function of 1 argument to control label formatting"
 		      (mapcan #'(lambda (series)
 				  (find-extremes (data series)))
 			      (chart-elements chart))))
-	(x-zero (draw-zero-p (x-axis chart)))
-	(y-zero (draw-zero-p (y-axis chart))))
+	(x-zero (ignore-errors
+		  (draw-zero-p (x-axis chart))))
+	(y-zero (ignore-errors
+		  (draw-zero-p (y-axis chart)))))
     (if (or x-zero y-zero)
 	(destructuring-bind ((min-x min-y) (max-x max-y)) data-minmax
 	  (declare (ignore max-x max-y))
