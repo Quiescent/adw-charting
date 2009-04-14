@@ -224,9 +224,12 @@ the Y axis")
 
 
 (defmethod add-title (title)
-  (set-parameter *current-chart*
-		 :chtt
-		 title))
+  "adds the given title, ignores if the title is nil"
+  (if title
+      (set-parameter *current-chart*
+		   :chtt
+		   title)
+      (warn "trying to set nil title")))
 
 (defun bar-spacing (bar-width-px &optional bar-seperation-px group-seperation-px)
   (set-parameter *current-chart*
