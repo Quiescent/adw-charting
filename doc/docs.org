@@ -1,8 +1,8 @@
-ADW-CHARTING -*- mode:org -*-
+#ADW-CHARTING -*- mode:org -*-
 #+TITLE: ADW-Charting: simple charts in Common Lisp
 #+AUTHOR: Ryan Davis
 #+EMAIL: ryan@acceleration.net
-#+OPTIONS: toc:1
+#+OPTIONS: toc:2
 	 
 * Introduction
 ADW-Charting is a simple chart drawing library for quickly creating 
@@ -26,11 +26,35 @@ http://common-lisp.net/project/adw-charting/adw-charting.tar.gz
 ADW-Charting is not yet asdf-installable, but that is on the [[file:todo.org][todo list]].
 For now, download the tarball at http://common-lisp.net/project/adw-charting/adw-charting.tar.gz
 or go straight to the darcs repository located at http://common-lisp.net/project/adw-charting/darcs/adw-charting
+* Sample Usage
+Here are a few quick examples:
+** minimal pie chart
+A simple pie chart using Vecto to generate the PNG file:
+*** vecto backend
+#+begin_src lisp
+(with-chart (:pie 300 200)
+  (add-slice "A" 5.0d0)
+  (add-slice "B" 2.0d0)
+  (save-file "vecto-minimal-pie-chart.png"))
+#+end_src
+[[file:vecto-minimal-pie-chart.png]]
+ 
+*** google backend
+The same pie chart using the Google Chart API to generate the PNG:
+#+begin_src lisp
+(with-gchart (:pie 300 200)
+  (add-slice "A" 5.0d0)
+  (add-slice "B" 2.0d0)
+  (add-features :label)
+  (save-file "google-minimal-pie-chart.png"))
+#+end_src
+file:google-minimal-pie-chart.png
 * Rendering Backends
 ADW-Charting has two rendering backends, one using Vecto to create 
 PNG files directly, another using the Google Chart API to let
 Google handle the drawing duties.  Each has it's pros and cons, and is
-activated by loading a different .asd file.
+activated by loading a different .asd file.  You can use both at the same
+time.  They are both actively developed (albeit at a snail's pace).
 ** Vecto backend, adw-charting-vecto.asd
 Pros:
 - pure lisp solution, total control is available
@@ -39,6 +63,9 @@ Cons:
 - conses an awful lot
 - generated PNGs don't display in Microsoft image viewer, must be viewed via a browser (IE shows them fine)
 ** Google backend, adw-charing-google.asd
+With this renderer, adw-charting assembles the url parameters and
+makes HTTP calls (using Drakma) to Google's chart service, or can give
+you the url directly.
 Pros:
 - much less CPU intensive
 - images are served using Google's bandwidth, not yours
@@ -47,33 +74,25 @@ Pros:
 Cons:
 - limited to 300,000 pixels per image
 - Google's label placement can be screwy sometimes
+- requires the lisp be connected to the internet
 - depends on a third party service that might be shut off tomorrow
 - any sensitive information would travel to another server via http
 - can't graph large datasets (all data has to be passed on the querystring)
-* Sample Usage
-** minimal pie chart
-*** vecto backend
-#+begin_example
-(with-chart (:pie 300 200)
-  (add-slice "A" 5.0d0)
-  (add-slice "B" 2.0d0)
-  (save-file "vecto-minimal-pie-chart.png"))
-#+end_example
-[[file:vecto-minimal-pie-chart.png]]
- 
-*** google backend
-#+begin_example
-(with-gchart (:pie 300 200)
-  (add-slice "A" 5.0d0)
-  (add-slice "B" 2.0d0)
-  (add-features :label)
-  (save-file "google-minimal-pie-chart.png"))
-#+end_example
-file:google-minimal-pie-chart.png
+** Which one should you use?
+The answer is always "it depends".  I generally use the google backend
+for public data, or if I want to use a chart feature that is not
+implemented in the Vecto backend.  I use vecto backend for private
+data, when I want a very large chart, or when I want to work
+disconnected.
+
+Eventually, I would like to improve the performance and functionality of the vecto backend to the point
+that the google backend is redundant.
+
 * Caveats / Gotchas
+#<<colors>>
 - All colors are RGB, represented as a list of 3 numbers between 0 and 1, eg:'(1 .5 .3)
 - The bounds on a pie chart are a bit goofy, as the radius of the pie is currently only determined by the height of the chart. This means a square image will cut off the legend.
-- The font used for all the text is included in the distribution, some random .ttf file pulled from the debian freefont library. You can specify the font file using the *default-font-file* unexported variable. I'm using a with-font macro internally that could solve this one.
+- The font used for all the text is included in the distribution, some random .ttf file pulled from the debian freefont library. You can specify the font file using the =*default-font-file*= unexported variable. I'm using a with-font macro internally that could solve this one.
 * Feedback
 If you have any questions, comments, bug reports, or other 
 feedback regarding ADW-Charting, please [[mailto:ryan@acceleration.net][email me]].
@@ -81,7 +100,102 @@ feedback regarding ADW-Charting, please [[mailto:ryan@acceleration.net][email me
 Progress and previews are occasionally available on my blog:
 http://ryepup.unwashedmeme.com/blog/category/adw-charting/
 
+* More examples
+** star rating
 * API reference
+adw-charting is split into 3 .asd files:
+- adw-charting.asd: covers a common based used by the backends
+- adw-charting-vecto.asd: covers rendering with Vecto
+- adw-charting-google.asd: covers rendering with Google
+
+These all export functions into the adw-charting package.
+
+In most cases, to render a chart you call some =with-*= variant to
+create a chart context, call functions in that context to configure
+the chart, then call a =save-*= function to perform the rendering.  Most
+functions will not work if they called outside a chart context, with a
+few exceptions.
+
+** Creating a chart context
+*** Vecto: with-chart
+#+begin_src lisp
+(defmacro with-chart ((type width height &key (background '(1 1 1))) &body body))
+#+end_src
+Initializes a chart.
+
+The =type= argument is one of:
+- :line - normal line chart
+- :bar - normal bar chart
+- :pie - normal pie chart
+- :star-rating - displays a percentage as partially filled stars.  See the [[*star%20rating][star rating example]].
+
+=width= and =height= are the dimensions of the final image in pixels.
+
+=background= is an optional background color for the chart, defaulting to white.
+
+**** deprecated
+- =with-pie-chart=: use =(with-chart (:pie ...= 
+- =with-line-chart=: use =(with-chart (:line ...=  
+- =with-bar-chart=: use =(with-chart (:bar ...= 
+
+*** Google: with-gchart 
+#+begin_src lisp
+(defmacro with-gchart ((type width height &key (background '(1 1 1))) &body body))
+#+end_src
+Initializes a chart.
+
+The =type= argument is one of:
+- :pie - normal pie chart
+- :pie-3d - 3d pie chart
+- :line - normal line chart
+- :v-bar - bar chart with bars rising vertically
+- :h-bar - bar chart with bars rising horizontally
+- :v-gbar - ?
+- :h-gbar - ?
+
+=width= and =height= are the dimensions of the final image in pixels.
+
+=background= is an optional background color for the chart, defaulting to white.
+
+** Modifying the chart
+*** pie charts
+
+**** add-slice
+#+begin_src lisp
+(defun add-slice (label value &key color))
+#+end_src
+Adds a slice to the pie.  
+
+=label= a string to identify this slice
+
+=value= any number
+
+=color= a color for this slice, see [[colors]].  A unique color will be automatically assigned.
+
+
+*** bar and line charts
+**** add-series
+**** set-axis
+*** vecto star-rating charts
+set-rating 
+set-color
+*** google charts
+add-feature 
+add-features 
+add-title 
+** Saving the chart
+
+*** common
+save-file
+save-stream
+
+*** google
+chart-url 
+
+** Google misc functions
+make-color 
+google-o-meter
+
 * Acknoledgements
 - Zach Beane for creating [[http://www.xach.com/lisp/vecto/][Vecto]]
 - Peter Seibel for his excellent book, [[http://gigamonkeys.com/book][Practical Common Lisp]]

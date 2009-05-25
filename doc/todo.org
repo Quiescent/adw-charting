@@ -22,16 +22,11 @@ ADW-CHARTING
    when I wrote a lot of this I was obsessed with mapcar and unfamilair with loop,
    and much code can be eliminated or made much clearer with loop
 ** pull google simplifications into other code
-** rework vecto backend to use new vecto features
-   At least strip out the broken pie-chart masking crap and use vecto's [[http://www.xach.com/lisp/vecto/#arc][arc]] or arcn function,
-   but review the [[http://www.xach.com/lisp/vecto/][vecto docs]] and see what else could be applicable.
 ** signal an error when specifying a google chart that is too big for the google service
    maybe provide a restart to use the biggest valid height/width that keeps the aspect ratio?
 ** pull in alexandria for common utils
    might not be needed
 * Spring 2009
-** unify the API
-   make everything be (with-chart(:type ...)) instead of (with-type-chart(...))
 ** look at a smarter way to pick points/labels/bounds
    - make many passes to see what will fit?
    - maybe something like cl-unification or lisa would help?
