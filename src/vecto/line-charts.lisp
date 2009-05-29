@@ -55,10 +55,8 @@ the Y axis")))
 		   (h height)
 		   (min data-min)
 		   (max data-max)) gr
-    (make-point (/ w
-		   (- (x max) (x min)))
-		(/ h
-		   (- (y max) (y min))))))
+    (make-point (/ w (max 10 (- (x max) (x min))))
+		(/ h (max 10 (- (y max) (y min)))))))
 
 (defmethod data-origin ((graph graph-region))
   (with-accessors ((x x)
