@@ -199,8 +199,8 @@ the Y axis")))
 			  y-axis-labels-x
 			  gy)))))
 
-(defun draw-graph-area (graph &optional (border-only nil))
-  "draws the graph aread"
+(defun draw-graph-area (graph)
+  "draws the graph area"
   (with-graphics-state
     ;;set the chart background as the avg
     ;;between the background color and 1
@@ -208,15 +208,20 @@ the Y axis")))
     (set-rgb-stroke 0 0 0)    
     (rectangle (1- (x graph)) (1- (y graph))
 	       (1+ (width graph)) (1+ (height graph)))
-    
-    (if border-only
-	(set-rgba-fill 0 0 0 0)
-	(set-fill (mapcar #'(lambda (c)
-			      (/ (+ (if (eq 1 c)
-					.7
-					1) c) 2))
-			  (background (chart graph)))))
+        
+    (set-fill (mapcar #'(lambda (c)
+			  (/ (+ (if (eq 1 c) .7 1)
+				c)
+			     2))
+		      (background (chart graph))))
     (fill-and-stroke)))
+
+(defun draw-graph-outline (graph)
+  (with-graphics-state
+    (set-rgb-stroke 0 0 0)
+    (rectangle (1- (x graph)) (1- (y graph))
+	       (1+ (width graph)) (1+ (height graph)))
+    (stroke)))
 
 
 (defmethod dp->gp ((graph graph-region) x y)
@@ -325,7 +330,7 @@ the Y axis")))
 
 	  ;;TODO: make this a property of the series
 	  (draw-series chart graph)
-	  (draw-graph-area graph T))))))
+	  (draw-graph-outline graph))))))
 
 (defgeneric draw-series (chart graph))
 
