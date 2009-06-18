@@ -31,53 +31,52 @@ Here are a few quick examples:
 ** minimal pie chart
 A simple pie chart using Vecto to generate the PNG file:
 *** vecto backend
-#+begin_src lisp
-(with-chart (:pie 300 200)
-  (add-slice "A" 5.0d0)
-  (add-slice "B" 2.0d0)
-  (save-file "vecto-minimal-pie-chart.png"))
-#+end_src
-[[file:vecto-minimal-pie-chart.png]]
+#+INCLUDE "../examples/minimal-pie-chart-vecto.lisp" src lisp
+[[file:minimal-pie-chart-vecto.png]]
  
 *** google backend
 The same pie chart using the Google Chart API to generate the PNG:
-#+begin_src lisp
-(with-gchart (:pie 300 200)
-  (add-slice "A" 5.0d0)
-  (add-slice "B" 2.0d0)
-  (add-features :label)
-  (save-file "google-minimal-pie-chart.png"))
-#+end_src
-file:google-minimal-pie-chart.png
+#+INCLUDE "../examples/minimal-pie-chart-google.lisp" src lisp
+file:minimal-pie-chart-google.png
+
+** minimal line chart
+*** vecto backend
+*** google backend
+
+** minimal bar chart
+*** vecto backend
+*** google backend
+
 * Rendering Backends
-ADW-Charting has two rendering backends, one using Vecto to create 
-PNG files directly, another using the Google Chart API to let
-Google handle the drawing duties.  Each has it's pros and cons, and is
-activated by loading a different .asd file.  You can use both at the same
-time.  They are both actively developed (albeit at a snail's pace).
+ADW-Charting has two rendering backends, one using Vecto to create PNG
+files directly, another using the Google Chart API to let Google
+handle the drawing duties.  Each has it's pros and cons, and is
+activated by loading a different .asd file.  You can use both at the
+same time.  They are both actively developed (albeit at a snail's
+pace).
 ** Vecto backend, adw-charting-vecto.asd
 Pros:
 - pure lisp solution, total control is available
-- size and data density are only limited by computing resources
-Cons:
+- size and data density are only limited by computing resources Cons:
 - conses an awful lot
-- generated PNGs don't display in Microsoft image viewer, must be viewed via a browser (IE shows them fine)
-** Google backend, adw-charing-google.asd
+- generated PNGs don't display in Microsoft image viewer, must be
+  viewed via a browser (IE shows them fine)
+** Google backend, adw-charting-google.asd
 With this renderer, adw-charting assembles the url parameters and
 makes HTTP calls (using Drakma) to Google's chart service, or can give
-you the url directly.
-Pros:
+you the url directly.  Pros:
 - much less CPU intensive
 - images are served using Google's bandwidth, not yours
 - simple charts frequently look better
-- more chart features are available, although many aren't yet implemented via ADW-Charting
-Cons:
-- limited to 300,000 pixels per image
+- more chart features are available, although many aren't yet
+implemented via ADW-Charting Cons:
+- limited to 300,000 pixels per image (which is smaller than you think)
 - Google's label placement can be screwy sometimes
 - requires the lisp be connected to the internet
 - depends on a third party service that might be shut off tomorrow
 - any sensitive information would travel to another server via http
-- can't graph large datasets (all data has to be passed on the querystring)
+- can't graph large datasets (all data has to be passed on the
+  querystring)
 ** Which one should you use?
 The answer is always "it depends".  I generally use the google backend
 for public data, or if I want to use a chart feature that is not
@@ -85,14 +84,17 @@ implemented in the Vecto backend.  I use vecto backend for private
 data, when I want a very large chart, or when I want to work
 disconnected.
 
-Eventually, I would like to improve the performance and functionality of the vecto backend to the point
-that the google backend is redundant.
+Eventually, I would like to improve the performance and functionality
+of the vecto backend to the point that the google backend is
+redundant.
 
 * Caveats / Gotchas
 #<<colors>>
-- All colors are RGB, represented as a list of 3 numbers between 0 and 1, eg:'(1 .5 .3)
+- All colors are RGB, represented as a list of 3 numbers between 0 and 1, eg: =(list 1 .5 .3)=
 - The bounds on a pie chart are a bit goofy, as the radius of the pie is currently only determined by the height of the chart. This means a square image will cut off the legend.
 - The font used for all the text is included in the distribution, some random .ttf file pulled from the debian freefont library. You can specify the font file using the =*default-font-file*= unexported variable. I'm using a with-font macro internally that could solve this one.
+- Many things should be converted to vectors.  See the [[file:todo.org][todo]] for other caveats along these lines.
+
 * Feedback
 If you have any questions, comments, bug reports, or other 
 feedback regarding ADW-Charting, please [[mailto:ryan@acceleration.net][email me]].

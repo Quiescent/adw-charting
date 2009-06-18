@@ -16,7 +16,29 @@
 ;; TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 ;; SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-(load "doc/doc.lisp")
-(adw-doc::adw-charting-doc)
+;;load up both backends
+(require 'adw-charting-vecto)
+(require 'adw-charting-google)
+(require 'cl-fad)
+(use-package 'adw-charting)
+
+;; run all the snippets
+(defun load-examples ()
+  (dolist (file (cl-fad:list-directory
+		   (merge-pathnames
+		    "examples/"
+		    (asdf:component-pathname
+		     (asdf:find-system :adw-charting)))))
+    (when (string-equal "lisp"
+			(pathname-type file))
+      (ignore-errors (load file))
+      (format T "Loaded ~a~%" (pathname-name file)))))
+
+(load-examples)
+;;move *.png to
+(merge-pathnames
+ "doc/"
+ (asdf:component-pathname
+  (asdf:find-system :adw-charting)))
 (quit)
 

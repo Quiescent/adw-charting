@@ -1,4 +1,4 @@
-#! /bin/bash
+#!/bin/sh
 
 echo "sync with cl-user"
 darcs push rdavis@common-lisp.net:/project/adw-charting/public_html/darcs/adw-charting
