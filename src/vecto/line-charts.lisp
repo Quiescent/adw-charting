@@ -101,7 +101,7 @@ the Y axis")))
 	    (calculate-y-axes graph text-height y-axis-labels-x)
 	    do (let ((half-text (/ text-height 2)))
 
-		 (draw-string x (- y half-text) txt)
+		 (draw-string x (- y half-text) (if (stringp txt) txt (princ-to-string txt)))
 		 (draw-gridline (axis)
 				(move-to (x graph) y)
 				(line-to (+ (x graph) 
@@ -119,7 +119,8 @@ the Y axis")))
       (loop for (txt x) in (calculate-x-axes graph)
 	    do (progn
 		 (draw-centered-string x  
-				       x-axis-labels-y txt)
+				       x-axis-labels-y
+				       (if (stringp txt) txt (princ-to-string txt)))
 		 (draw-gridline (axis)
 				(move-to x (y graph))
 				(line-to x

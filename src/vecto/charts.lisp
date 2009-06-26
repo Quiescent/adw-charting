@@ -27,7 +27,8 @@
 (defmethod font-bounding-box ((chart chart) text)
   "gets the bounding box for the given text on the given chart."  
   (with-font ()
-    (string-bounding-box text
+    (string-bounding-box (if (stringp text) text
+			     (princ-to-string text))
 			 (label-size chart)
 			 *font*)))
 
