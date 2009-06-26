@@ -109,7 +109,7 @@ the Y axis")))
 					 y))))
       (when (draw-zero-p axis)
 	(with-graphics-state
-	  (set-line-width 2)
+	  (set-line-width 1)
 	  (set-rgb-stroke 0 0 0)
 	  (move (dp->gp graph (x (data-min graph)) 0))
 	  (line (dp->gp graph (x (data-max graph)) 0))
@@ -302,8 +302,8 @@ the Y axis")))
 	  
 	  (setf (data-min graph) (make-point min-x
 					     (* 0.99 (if (draw-zero-p (y-axis chart))
-						 (min 0 min-y)
-						 min-y))))
+							 (min 0 min-y)
+							 min-y))))
 	  (setf (data-max graph) (make-point max-x (* 1.01 max-y)))
 	  ;;adjust our graph region to account for labels
 	  (when-let (axis (y-axis chart))
