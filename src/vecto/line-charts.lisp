@@ -91,7 +91,7 @@ the Y axis")))
 	       `(when (draw-gridlines-p ,axis)
 		 (with-graphics-state
 		   (set-line-width 1)
-		   (set-stroke (background (chart graph)))
+		   (set-stroke '(0 0 0))
 		   (set-dash-pattern #(10 2) 0)
 		   ,@gridline
 		   (stroke)))))
@@ -208,7 +208,7 @@ the Y axis")))
 	       (1+ (width graph)) (1+ (height graph)))
         
     (set-fill (mapcar #'(lambda (c)
-			  (/ (+ (if (eq 1 c) .7 1)
+			  (/ (+ (if (eq 1 c) .9 1)
 				c)
 			     2))
 		      (background (chart graph))))

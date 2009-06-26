@@ -18,12 +18,11 @@
 
 (in-package :adw-charting)
 
-(defparameter +default-colors+ '((1 1 0) ;rgb 0-1
-				 (1 0 1)
-				 (1 0 0)
-				 (0 1 1)
-				 (0 1 0)
-				 (0 0 1)))
+(defparameter +default-colors+ '((0.4117647 0.8235294 0.90588236) ;rgb 0-1
+				 (0.654902 0.85882354 0.84705883)
+				 (0.8784314 0.89411765 0.8)
+				 (0.9529412 0.5254902 0.1882353)
+				 (0.98039216 0.4117647 0)))
 
 (defvar *color-stack* +default-colors+)
 (defvar *current-chart* nil
