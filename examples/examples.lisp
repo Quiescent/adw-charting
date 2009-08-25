@@ -21,52 +21,6 @@
 
 (in-package #:net.acceleration.adw-charting-examples)
 
-(defun minimal-pie-chart ()  
-  (with-chart (:pie 300 200)
-    (add-slice "A" 5.0d0)
-    (add-slice "B" 2.0d0)
-    (save-file "vecto-minimal-pie-chart.png")))
-
-(defun minimal-pie-gchart ()  
-  (with-gchart (:pie 300 200)
-    (add-slice "A" 5.0d0)
-    (add-slice "B" 2.0d0)
-    (add-features :label)
-    (save-file "google-minimal-pie-chart.png")))
-
-
-
-
-(defun bigger-pie-chart ()  
-  (with-pie-chart (300 200)
-    (loop for (label value) in '(("A" 400)
-				 ("B" 217)
-				 ("C" 212.5)
-				 ("D" 350)
-				 ("E" 1000))
-	  do (add-slice label value))
-    (save-file "bigger-pie-chart.png")))
-
-(defun minimal-line-chart ()
-  (with-line-chart (400 300)
-    (add-series "A" '((-1 -2) (0 4) (1 5) (4 6) (5 -3)))
-    (add-series "B" '((-1 4) (0 -2) (1 6) (5 -2) (6 5)))
-    (save-file "minimal-line-chart.png")))
-
-(defun customized-line-chart ()
-  (with-line-chart (400 300 :background '(.7 .5 .7))
-    (add-series "A" '((-.1 -.2) (0 .4) (.1 .5) (.4 .6) (.5 -.3)))
-    (add-series "B" '((-.1 .4) (0 -.2) (.1 .6) (.5 -.2) (.6 .5)))
-    (add-series "C" '((-.1 0) (0 .3) (.1 .1) (.2 .5) (.4 -.6))
-		:color '(.3 .7 .9))
-    (set-axis :y "widgets" :label-formatter "~,2F")
-    (set-axis :x nil
-	      :draw-gridlines-p nil
-	      :label-formatter #'(lambda (v)
-				   ;;could do something more interesting here
-				   (format nil "~,1F" (expt 2 v))))
-    (save-file "customized-line-chart.png")))
-
 (defvar +boink-data+ '((3220487700 "baker" "SBCL,(:ARCH :EMULATED-X86 :FEATURES NIL)" "0.7.0"
                  9.179666666666666d0 0.039405685894399696d0)
                 (3221090100 "baker" "SBCL,(:ARCH :EMULATED-X86 :FEATURES NIL)" "0.7.1"
@@ -217,15 +171,6 @@
 				   (nth 3 (nth i +boink-data+))))
     (save-file "boink.png")))
 
-(defun stuart-mackey-1 ()
-  (with-line-chart (400 300)
-    (add-series "test" '((1 0.0) (2 2.0) (3 3.0) (4 1.5)) :color '(0 0 1))
-    (set-axis :y "amount" :label-formatter "~,2f")
-    (set-axis :x "days" :data-interval 1
-	      :draw-gridlines-p nil	   
-	      :label-formatter (lambda (v) (format nil "~d" (round v))))
-    (save-file "stuart-mackey-1.png")))
-
 (defun random-between (min max)
   (+ min
      (random (float (- max min)))))
@@ -250,28 +195,3 @@
 			   :label-formatter "~,2f"
 			   :draw-gridlines-p nil)
     (save-file "mixed-mode.png")))
-
-(defun pie-gchart ()
-  (with-gchart (:pie-3d 400 200)
-    (add-slice "foo" 10d0)
-    (add-slice "bar" 10d0)
-    (add-slice "baz" 20d0)
-    (add-features :label)
-    (format T (chart-url))
-    (save-file "pie-gchart.png")))
-
-(defun minimal-line-gchart ()
-  (with-gchart (:line 400 300)
-    (add-series "A" '((-1 -2) (0 4) (1 5) (4 6) (5 -3)))
-    (add-series "B" '((-1 4) (0 -2) (1 6) (5 -2) (6 5)))
-    (add-features :label)
-    (format T (chart-url))
-    (save-file "minimal-line-gchart.png")))
-
-(defun minimal-bar-gchart ()
-  (with-gchart (:v-bar 400 300)
-    (add-series "A" '((-1 -2) (0 4) (1 5) (4 6) (5 -3)))
-    (add-series "B" '((-1 4) (0 -2) (1 6) (5 -2) (6 5)) :color (make-color "ff0000"))
-    (add-features :label)
-    (format T (chart-url))
-    (save-file "minimal-bar-gchart.png")))

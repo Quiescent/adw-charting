@@ -2,7 +2,6 @@
 (let ((width 1264)
       (height 632))
   (with-chart (:line width height)
-    ;(add-series "Rank" '((0 10) (1 18) (2 19) (3 17)))
     (add-series "Rank" '((0 10) (1 18) (2 6) (3 17)))
     (add-series "25" '((0 25) (3 25)))
     (set-axis :y "Rank")
