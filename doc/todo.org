@@ -21,7 +21,6 @@ ADW-CHARTING
 ** review vecto backend, refactor with current knowledge
    when I wrote a lot of this I was obsessed with mapcar and unfamilair with loop,
    and much code can be eliminated or made much clearer with loop
-** pull google simplifications into other code
 ** signal an error when specifying a google chart that is too big for the google service
    maybe provide a restart to use the biggest valid height/width that keeps the aspect ratio?
 ** pull in alexandria for common utils

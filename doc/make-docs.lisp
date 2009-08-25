@@ -20,7 +20,13 @@
 (require 'adw-charting-vecto)
 (require 'adw-charting-google)
 (require 'cl-fad)
-(use-package 'adw-charting)
+
+
+(defpackage #:make-docs
+  (:use #:cl #:adw-charting))
+
+(in-package #:make-docs)
+
 
 ;; run all the snippets
 (defun load-examples ()
@@ -34,6 +40,7 @@
       (ignore-errors (load file))
       (format T "Loaded ~a~%" (pathname-name file)))))
 
+#|
 (load-examples)
 ;;move *.png to
 (merge-pathnames
@@ -41,4 +48,4 @@
  (asdf:component-pathname
   (asdf:find-system :adw-charting)))
 (quit)
-
+|#

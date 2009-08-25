@@ -141,6 +141,16 @@
 	 :documentation "a flag for how to render this series"))  
   (:documentation "represents a line on a line chart"))
 
+(defun default-label-formatter (value)
+  (typecase value
+    ((or float ratio) (format nil "~,1F" value))
+    (integer (princ-to-string value))
+    (t (progn
+	 (break "don't know how to format ~a~%" (type-of value))
+	 (princ-to-string value)))
+    )
+  )
+
 (defclass axis ()
   ((label :accessor label
 	  :initarg :label
@@ -149,7 +159,7 @@
 of measurement ($, s, km, etc)")   
    (label-formatter :accessor label-formatter
 		    :initarg :label-formatter
-		    :initform #'princ-to-string
+		    :initform #'default-label-formatter
 		    :documentation "a function to format data points, for
 printing periodic values along the axis")
    (draw-gridlines-p :accessor draw-gridlines-p
@@ -182,7 +192,7 @@ across the chart")
 	(chart-elements *current-chart*)))
 
 (defun set-axis (axis title &key draw-gridlines-p
-		 (label-formatter #'princ-to-string)
+		 (label-formatter #'default-label-formatter)
 		 (mode :value)
 		 data-interval
 		 scalefn

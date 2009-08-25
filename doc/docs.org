@@ -14,8 +14,8 @@ depending on external non-Lisp libraries, it should work
 in any Common Lisp environment. ADW-Charting is available 
 under a BSD-like license. The 'ADW' in the name is 
 referencing my employer, [[http://www.acceleration.net][Acceleration.net]], who has 
-sponsored much of this work. The current version is 0.7, 
-released on January 28th, 2008.
+sponsored much of this work. The current version is 0.8, 
+released on August 24th, 2009.
 
 The canonical location for ADW-Charting is http://common-lisp.net/project/adw-charting/
 
@@ -41,11 +41,28 @@ file:minimal-pie-chart-google.png
 
 ** minimal line chart
 *** vecto backend
+#+INCLUDE "../examples/minimal-line-chart-vecto.lisp" src lisp
+[[file:minimal-line-chart-vecto.png]]
+
 *** google backend
+#+INCLUDE "../examples/minimal-line-chart-google.lisp" src lisp
+[[file:minimal-line-chart-google.png]]
 
 ** minimal bar chart
 *** vecto backend
+#+INCLUDE "../examples/minimal-bar-chart-vecto.lisp" src lisp
+[[file:minimal-bar-chart-vecto.png]]
+
 *** google backend
+#+INCLUDE "../examples/minimal-bar-chart-google.lisp" src lisp
+[[file:minimal-bar-chart-google.png]]
+
+** star ratings
+This is a vecto-only chart:
+#+INCLUDE "../examples/star-rating.lisp" src lisp
+[[file:star-rating.png]]
+
+Be sure the width is at least 5 times the height.
 
 * Rendering Backends
 ADW-Charting has two rendering backends, one using Vecto to create PNG
@@ -57,19 +74,22 @@ pace).
 ** Vecto backend, adw-charting-vecto.asd
 Pros:
 - pure lisp solution, total control is available
-- size and data density are only limited by computing resources Cons:
+- size and data density are only limited by computing resources 
+Cons:
 - conses an awful lot
 - generated PNGs don't display in Microsoft image viewer, must be
   viewed via a browser (IE shows them fine)
 ** Google backend, adw-charting-google.asd
 With this renderer, adw-charting assembles the url parameters and
 makes HTTP calls (using Drakma) to Google's chart service, or can give
-you the url directly.  Pros:
+you the url directly.
+
+Pros:
 - much less CPU intensive
 - images are served using Google's bandwidth, not yours
 - simple charts frequently look better
-- more chart features are available, although many aren't yet
-implemented via ADW-Charting Cons:
+- more chart features are available, although many aren't yet implemented in the vecto backend
+Cons:
 - limited to 300,000 pixels per image (which is smaller than you think)
 - Google's label placement can be screwy sometimes
 - requires the lisp be connected to the internet
@@ -102,8 +122,6 @@ feedback regarding ADW-Charting, please [[mailto:ryan@acceleration.net][email me
 Progress and previews are occasionally available on my blog:
 http://ryepup.unwashedmeme.com/blog/category/adw-charting/
 
-* More examples
-** star rating
 * API reference
 adw-charting is split into 3 .asd files:
 - adw-charting.asd: covers a common based used by the backends
@@ -174,10 +192,50 @@ Adds a slice to the pie.
 
 =color= a color for this slice, see [[colors]].  A unique color will be automatically assigned.
 
-
 *** bar and line charts
 **** add-series
+#+begin_src lisp
+(defun add-series (label data &key color (mode 'default)))
+#+end_src
+=label= a string to identify this series
+
+=data= a list of =(x y)= pairs
+
+=color= a color for this slice, see [[colors]].  A unique color will be automatically assigned.
+
+=mode= _experimental_ use =:line= on bar charts to render this series as a line instead of a bar.
 **** set-axis
+#+begin_src lisp
+(defun set-axis (axis title &key draw-gridlines-p
+		 (label-formatter #'default-label-formatter)
+		 (mode :value)
+		 data-interval
+		 scalefn
+		 draw-zero-p
+		 angle))
+#+end_src
+=axis= which axis you'd like to configur, must be =:x= or =:y=
+
+=title= a string used to label the axis.  nil for no axis label
+
+=draw-gridlines-p= when non-nil, draws fairly ugly lines that match with the axis labels
+
+=label-formatter= determines how values from your data is converted to axis labels.  You can pass this:
+ 1) a function of 1 argument
+ 2) a string to be used as the control string to a =format= call
+
+The default tries to format values in usually acceptable way.
+
+=draw-zero-p= if non-nil, force this axis to show 0, even if it is notcontained within the data.
+
+=data-interval= a number that should be used as the interval whendrawing axis labels.  If nil, a suitable interval will be chosenautomatically.
+
+=mode= _experimental_ determines how the axis values are calculated, intended be used to specify non-ordered axis values in the future.
+
+=scalefn= _experimental_ a function used to scale data on this axis before rendering.  Currently only respected by the google backend, and I'm not sure why.
+
+=angle= _experimental_ used to rotate axis label text
+
 *** vecto star-rating charts
 set-rating 
 set-color
