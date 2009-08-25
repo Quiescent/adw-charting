@@ -26,43 +26,6 @@ http://common-lisp.net/project/adw-charting/adw-charting.tar.gz
 ADW-Charting is not yet asdf-installable, but that is on the [[file:todo.org][todo list]].
 For now, download the tarball at http://common-lisp.net/project/adw-charting/adw-charting.tar.gz
 or go straight to the darcs repository located at http://common-lisp.net/project/adw-charting/darcs/adw-charting
-* Sample Usage
-Here are a very basic examples.  More can be found in the [[file:gallery.org][gallery]].
-** minimal pie chart
-A simple pie chart using Vecto to generate the PNG file:
-*** vecto backend
-#+INCLUDE "../examples/minimal-pie-chart-vecto.lisp" src lisp
-[[file:minimal-pie-chart-vecto.png]]
- 
-*** google backend
-The same pie chart using the Google Chart API to generate the PNG:
-#+INCLUDE "../examples/minimal-pie-chart-google.lisp" src lisp
-file:minimal-pie-chart-google.png
-
-** minimal line chart
-*** vecto backend
-#+INCLUDE "../examples/minimal-line-chart-vecto.lisp" src lisp
-[[file:minimal-line-chart-vecto.png]]
-
-*** google backend
-#+INCLUDE "../examples/minimal-line-chart-google.lisp" src lisp
-[[file:minimal-line-chart-google.png]]
-
-** minimal bar chart
-*** vecto backend
-#+INCLUDE "../examples/minimal-bar-chart-vecto.lisp" src lisp
-[[file:minimal-bar-chart-vecto.png]]
-
-*** google backend
-#+INCLUDE "../examples/minimal-bar-chart-google.lisp" src lisp
-[[file:minimal-bar-chart-google.png]]
-
-** star ratings
-This is a vecto-only chart:
-#+INCLUDE "../examples/star-rating.lisp" src lisp
-[[file:star-rating.png]]
-
-Be sure the width is at least 5 times the height.
 
 * Rendering Backends
 ADW-Charting has two rendering backends, one using Vecto to create PNG
@@ -107,6 +70,54 @@ disconnected.
 Eventually, I would like to improve the performance and functionality
 of the vecto backend to the point that the google backend is
 redundant.
+* Sample Usage
+Here are a very basic examples.  More can be found in the [[file:gallery.org][gallery]].
+** loading adw-charting into your lisp
+To use the Vecto backend:
+#+begin_src lisp
+(asdf:oos 'asdf:load-op 'adw-charting-vecto)
+#+end_src
+
+To use the Google backend:
+#+begin_src lisp
+(asdf:oos 'asdf:load-op 'adw-charting-google)
+#+end_src
+You can use both at once if you want to mix-and-match backends.
+** minimal pie chart
+A simple pie chart using Vecto to generate the PNG file:
+*** vecto backend
+#+INCLUDE "../examples/minimal-pie-chart-vecto.lisp" src lisp
+[[file:minimal-pie-chart-vecto.png]]
+ 
+*** google backend
+The same pie chart using the Google Chart API to generate the PNG:
+#+INCLUDE "../examples/minimal-pie-chart-google.lisp" src lisp
+file:minimal-pie-chart-google.png
+
+** minimal line chart
+*** vecto backend
+#+INCLUDE "../examples/minimal-line-chart-vecto.lisp" src lisp
+[[file:minimal-line-chart-vecto.png]]
+
+*** google backend
+#+INCLUDE "../examples/minimal-line-chart-google.lisp" src lisp
+[[file:minimal-line-chart-google.png]]
+
+** minimal bar chart
+*** vecto backend
+#+INCLUDE "../examples/minimal-bar-chart-vecto.lisp" src lisp
+[[file:minimal-bar-chart-vecto.png]]
+
+*** google backend
+#+INCLUDE "../examples/minimal-bar-chart-google.lisp" src lisp
+[[file:minimal-bar-chart-google.png]]
+
+** star ratings
+This is a vecto-only chart:
+#+INCLUDE "../examples/star-rating.lisp" src lisp
+[[file:star-rating.png]]
+
+Be sure the width is at least 5 times the height.
 
 * Caveats / Gotchas
 #<<colors>>
