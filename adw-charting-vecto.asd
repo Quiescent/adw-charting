@@ -29,7 +29,7 @@
   :author "Ryan Davis <ryan@acceleration.net>"
   :licence "LGPL (or talk to me)"
   :version "0.2"
-  :depends-on (#:vecto #:adw-charting #:iterate)
+  :depends-on (#:vecto #:adw-charting)
   :components ((:module :src
 			:components
 			((:module :vecto

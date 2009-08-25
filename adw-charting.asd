@@ -29,6 +29,7 @@
   :author "Ryan Davis <ryan@acceleration.net>"
   :licence "LGPL (or talk to me)"
   :version "0.2"
+  :depends-on (#:iterate)
   :components ((:module :src
 			:components ((:file "packages")
 				     (:file "utils" :depends-on ("packages"))

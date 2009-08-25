@@ -19,7 +19,7 @@
 (defpackage :net.acceleration.charting
     (:documentation "Charting library to make pretty graphs")
     (:nicknames #:adw-charting)
-    (:use #:cl)
+    (:use #:cl #:iterate)
     (:export
        :save-file
        :save-stream
