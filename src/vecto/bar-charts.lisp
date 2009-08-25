@@ -20,44 +20,54 @@
 
 (defclass bar-chart (line-chart) ())
 
+(defmethod calculate-graph-bounds :after ((chart bar-chart) graph)
+  ;;make some room for the bars   
+  (incf (x (data-max graph))
+	(/ (data-distance #'x graph)
+	   (number-of-bars chart))))
+
 (defvar *bar-width* 1)
+
+(defun calculate-bar-width (chart graph)
+  (setf *bar-width*
+	(max 1 (truncate
+		(/ (* 0.5 (width graph))
+		   (number-of-bars chart)))))
+  )
 
 (defun number-of-bars (chart)
   (loop for series in (chart-elements chart)
 	sum (length (data series))))
 
-(defun draw-bar (x y bars-drawn chart graph)
-  (declare (ignore chart))
-  (let* ((gp (dp->gp graph x y))
-	 (rx (+ (x gp)
-		(* *bar-width*
-		   bars-drawn)))
-	 (ry (y (data-origin graph)))
-	 (rw *bar-width*)
-	 (rh (- (y gp)
-		(y (data-origin graph)))))
-    (rectangle rx ry rw rh)
-    (fill-path)))
-
 (defmethod draw-series ((chart bar-chart) graph)
   (let ((bars-drawn (make-hash-table))
-	(*bar-width* (max 1
-			  (truncate (/ (* 0.5 (width graph))
-				       (number-of-bars chart))))))
+	(*bar-width*
+	 (max 1
+	      (truncate (/ (* 0.5 (width graph))
+			   (number-of-bars chart))))))
     (dolist (series (chart-elements chart))
       (if (eq (mode series) 'default)
-	  (draw-bar-series series graph bars-drawn chart)
+	  (draw-bar-series series graph bars-drawn)
 	  (draw-line-series series graph)))))
 
-(defun draw-bar-series (series graph bars-drawn chart)
-  (decf (width graph) (* 2 *bar-width*))
+(defun draw-bar-series (series graph bars-drawn)
+;;  (decf (width graph) (* 2 *bar-width*))
   (with-graphics-state
     (set-line-width 2)
     (set-fill series)
-    (loop for (x y) in (data series)
-	  do (draw-bar x y (gethash x bars-drawn 0) chart graph )
+    (iter (with ry = (y (dp->gp graph 0 0)))
+	  (for (x y) in (data series))
+	  (for num-bars-drawn = (gethash x bars-drawn 0))
+	  (for gp = (dp->gp graph x y))
+	  (for rx = (+ (x gp)
+		       (* num-bars-drawn
+			  *bar-width*)))
+	  (for rh = (- (y gp) ry))
+	  (rectangle rx ry *bar-width* rh)
+	  (fill-path)  
 	  (incf (gethash x bars-drawn 0))))
-  (incf (width graph) (* 2 *bar-width*)))
+  ;;(incf (width graph) (* 2 *bar-width*))
+  )
 
 (defmacro with-bar-chart ((width height &key (background ''(1 1 1))) &body body)
   "Evaluates body with a chart established with the specified

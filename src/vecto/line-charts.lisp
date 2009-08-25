@@ -55,8 +55,8 @@ the Y axis")))
 		   (h height)
 		   (min data-min)
 		   (max data-max)) gr
-    (make-point (/ w (max 10 (- (x max) (x min))))
-		(/ h (max 10 (- (y max) (y min)))))))
+    (make-point (/ w (max 1 (- (x max) (x min))))
+		(/ h (max 1 (- (y max) (y min)))))))
 
 (defmethod data-origin ((graph graph-region))
   (with-accessors ((x x)
@@ -69,6 +69,7 @@ the Y axis")))
       (when (minusp (y min))
 	(incf (y d-o) (abs (* (y d-s) (y min)))))
 
+      ;;if we have a positive min y, move the y 0 down
       (when (plusp (y min))
 	(decf (y d-o) (abs (* (y d-s) (y min)))))
     
@@ -87,51 +88,61 @@ the Y axis")))
 
 (defun draw-axes (graph y-axis-labels-x text-height x-axis-labels-y)
   "draws the axes"
-  (macrolet ((draw-gridline ((axis) &body gridline)
-	       `(when (draw-gridlines-p ,axis)
-		 (with-graphics-state
-		   (set-line-width 1)
-		   (set-stroke '(0 0 0))
-		   (set-dash-pattern #(10 2) 0)
-		   ,@gridline
-		   (stroke)))))
+  (let (gridlines)
+    (macrolet ((draw-gridline ((axis) &body gridline)
+		 `(when (draw-gridlines-p ,axis)
+		    (push #'(lambda ()
+			    (with-graphics-state
+				(set-line-width 1)
+			      (set-stroke '(0 0 0))
+			      (set-dash-pattern #(10 2) 0)
+			      ,@gridline
+			      (stroke)))
+			  gridlines))))
 
-    (when-let (axis (y-axis (chart graph)))
-      (loop for (txt x y) in 
-	    (calculate-y-axes graph text-height y-axis-labels-x)
-	    do (let ((half-text (/ text-height 2)))
+      (when-let (axis (y-axis (chart graph)))
+	(iter (for (txt x y) in (calculate-y-axes graph text-height y-axis-labels-x))
+	      (maximizing (font-width (chart graph) txt) into label-width)
+	      (for half-text = (/ text-height 2))
+	      (draw-string x (- y half-text)
+			   (if (stringp txt) txt (princ-to-string txt)))
+	      (let ((y y))
+		(draw-gridline (axis)
+			       (move-to (x graph) y)
+			       (line-to (+ (x graph) 
+					   (width graph)) 
+					y)))
+	      (finally (incf *current-x* label-width)))
 
-		 (draw-string x (- y half-text) (if (stringp txt) txt (princ-to-string txt)))
-		 (draw-gridline (axis)
-				(move-to (x graph) y)
-				(line-to (+ (x graph) 
-					    (width graph)) 
-					 y))))
-      (when (draw-zero-p axis)
-	(with-graphics-state
-	  (set-line-width 1)
-	  (set-rgb-stroke 0 0 0)
-	  (move (dp->gp graph (x (data-min graph)) 0))
-	  (line (dp->gp graph (x (data-max graph)) 0))
-	  (stroke))))
+	(offset-x graph *current-x*)
+      
+	(when (draw-zero-p axis)
+	  (with-graphics-state
+	      (set-line-width 1)
+	    (set-rgb-stroke 0 0 0)
+	    (move (dp->gp graph (x (data-min graph)) 0))
+	    (line (dp->gp graph (x (data-max graph)) 0))
+	    (stroke))))
 
-    (when-let (axis (x-axis (chart graph)))
-      (loop for (txt x) in (calculate-x-axes graph)
-	    do (progn
-		 (draw-centered-string x  
-				       x-axis-labels-y
-				       (if (stringp txt) txt (princ-to-string txt)))
-		 (draw-gridline (axis)
-				(move-to x (y graph))
-				(line-to x
-					 (+ (y graph) (height graph))))))
-      (when (draw-zero-p axis)
-	(with-graphics-state
-	  (set-line-width 2)
-	  (set-rgb-stroke 0 0 0)
-	  (move (dp->gp graph 0 (y (data-min graph))))
-	  (line (dp->gp graph 0 (y (data-max graph))))
-	  (stroke)))))) 
+      (when-let (axis (x-axis (chart graph)))
+	(loop for (txt x) in (calculate-x-axes graph)
+	      do (progn
+		   (draw-centered-string x  
+					 x-axis-labels-y
+					 (if (stringp txt) txt (princ-to-string txt)))
+		   (let ((x x))
+		     (draw-gridline (axis)
+				    (move-to x (y graph))
+				    (line-to x
+					     (+ (y graph) (height graph)))))))
+	(when (draw-zero-p axis)
+	  (with-graphics-state
+	      (set-line-width 2)
+	    (set-rgb-stroke 0 0 0)
+	    (move (dp->gp graph 0 (y (data-min graph))))
+	    (line (dp->gp graph 0 (y (data-max graph))))
+	    (stroke)))))
+    gridlines)) 
 
 (defun calculate-x-axes (graph)
   (let ((axis (x-axis (chart graph))))  
@@ -140,17 +151,25 @@ the Y axis")))
       (:category (break "should draw in order"))
       )))
 
-(defun calculate-value-x (graph)
+(defun order-of-magnitude (n)
+  (if (zerop n)
+      1
+      (expt 10 (floor (log n 10)))))
+
+(defun data-distance (axis-fn graph)
+  (let ((min-val (funcall axis-fn (data-min graph)))
+	(max-val (funcall axis-fn (data-max graph))))
+    (abs (- min-val max-val))))
+
+(defun calculate-value-x (graph)  
   (let* ((min-x (x (data-min graph)))
 	 (max-x (x (data-max graph)))
-	 (diff (abs (- min-x max-x)))
+	 (diff (data-distance #'x graph))
 	 (axis (x-axis (chart graph)))
 	 (data-interval (or (data-interval axis)
-			    (expt 10 
-				  (- (floor (log diff 10))
-				     1))))
+			    (/ (order-of-magnitude diff) 8)))
 	 (current-x (x graph))
-	 (lst ()))
+	 lst)
     ;;start drawing at 0, see how much we have
     (loop for x = min-x then (+ x data-interval)
 	  for gx = (round (x (dp->gp graph x 0)))
@@ -165,27 +184,22 @@ the Y axis")))
 				    (margin (chart graph)))))))
     lst))
 
-
-(defun order-of-magnitude (n)
-  (if (zerop n)
-      1
-      (expt 10 (floor (log n 10)))))
-
 (defun calculate-y-axes (graph text-height y-axis-labels-x)
   (let* ((min-y (y (data-min graph)))
-	 (max-y (y (data-max graph)))
 	 (axis (y-axis (chart graph)))
-	 (diff (abs (- min-y max-y)))
+	 (diff (data-distance #'y graph))
 	 (data-interval (or (data-interval axis)
 			    (/ (order-of-magnitude diff) 8)))
 	 (desired-text-space (* 2 text-height)))
 
     ;;be sure the interval has plenty of room in it for our text-height
-    (loop for i from 1
-	  until (< desired-text-space 
-		   (* i data-interval (y (data-scale graph))))
-	  finally (setf data-interval (* i data-interval)))
-
+    (iter (with scalar = (y (data-scale graph)))
+	  (summing data-interval into new-interval)
+	  (until (< desired-text-space
+		    (* new-interval scalar)))
+	  (finally
+	   (setf data-interval new-interval)))
+    
     (let* ((interval-magnitude (order-of-magnitude data-interval))
 	   (initial-y (* interval-magnitude
 			 (truncate (/ min-y interval-magnitude)))))
@@ -203,7 +217,6 @@ the Y axis")))
   (with-graphics-state
     ;;set the chart background as the avg
     ;;between the background color and 1
-    
     (set-rgb-stroke 0 0 0)    
     (rectangle (1- (x graph)) (1- (y graph))
 	       (1+ (width graph)) (1+ (height graph)))
@@ -244,9 +257,29 @@ the Y axis")))
 		(/ (- y (y d-o)) 
 		   (y d-s)))))
 
+(defmethod calculate-graph-bounds ((chart line-chart) graph)
+  (destructuring-bind ((min-x min-y) (max-x max-y))
+	    (find-chart-extremes chart)
+	  
+	  (setf (data-min graph)
+		(make-point min-x
+			    (* 0.99
+			       (if (draw-zero-p (y-axis chart))
+				   (min 0 min-y)
+				   min-y)))
+		(data-max graph)
+		(make-point max-x (* 1.01 max-y)))
+	  
+	  
+
+	  ;;TODO: make this a property of the series
+)
+  )
+
+(defvar *current-x* nil "keeps track of the current x coordinate for layout")
+
 (defmethod draw-chart ((chart line-chart))
   (with-font ()
-
     (let* ((width (width chart))
 	   (height (height chart))
 	   (graph-margin (margin chart))
@@ -259,8 +292,8 @@ the Y axis")))
 				 :height (- height graph-margin graph-margin 
 					    legend-space)
 				 :chart chart))
-	   (y-axis-labels-x nil)
-	   (x-axis-labels-y nil))
+	   (x-axis-labels-y nil)
+	   (*current-x* graph-margin))
 
       ;;if we're going to be drawing any axes, set the font and color
       (when (or (y-axis chart) (x-axis chart))      
@@ -269,18 +302,17 @@ the Y axis")))
 
 	;;move the graph region about
 	(when-let (axis (x-axis chart))
-	  (let ((offset (* text-height
-			   (if (label axis)
-			       3
-			       2))))	
-	    (offset-y graph offset)
+	  (offset-y graph (* text-height
+			     (if (label axis)
+				 3
+				 2)))
 	    
-	    (setf x-axis-labels-y (- (y graph) graph-margin text-height))
-	    ;;draw the x-label
-	    (when-let (label (label axis))
-	      (draw-centered-string (+ (x graph) (/ (width graph) 2))
-				    (+ (/ graph-margin 2) legend-space)
-				    label))))
+	  (setf x-axis-labels-y (- (y graph) graph-margin text-height))
+	  ;;draw the x-label
+	  (when-let (label (label axis))
+	    (draw-centered-string (+ (x graph) (/ (width graph) 2))
+				  (+ (/ graph-margin 2) legend-space)
+				  label)))
 
 	;;draw the y-label
 	(when-let (label (and (y-axis chart) 
@@ -292,44 +324,24 @@ the Y axis")))
 	   
 	    ;;rotate the canvas so we're sideways	
 	    (rotate (/ pi 2))
-	    (draw-centered-string 0 0 label))))
+	    (draw-centered-string 0 0 label))
+	  (incf *current-x* (+ text-height graph-margin))))
 
       (when (has-data-p chart)
 	;;figure out the right scaling factors so we fill the graph    
 					;find the min/max x/y across all series
-	(destructuring-bind ((min-x min-y) (max-x max-y))
-	    (find-chart-extremes chart)
-	  
-	  (setf (data-min graph) (make-point min-x
-					     (* 0.99 (if (draw-zero-p (y-axis chart))
-							 (min 0 min-y)
-							 min-y))))
-	  (setf (data-max graph) (make-point max-x (* 1.01 max-y)))
-	  ;;adjust our graph region to account for labels
-	  (when-let (axis (y-axis chart))
-	    (let* ((text-width (loop for y in (list min-y max-y)
-				  maximizing (font-width chart
-							 (axis-label axis y)) 
-				  into longest
-				  finally (return longest)))
-		   (offset (+ text-width
-			      (* text-height (if (label axis)
-						 3
-						 1.5)))))
-	      (offset-x graph offset)
-	      (setf y-axis-labels-x (- (x graph) graph-margin text-width))))
 
+	(calculate-graph-bounds chart graph)
+	(let ((gridline-fns
+	       (when (or (y-axis chart) (x-axis chart))
+		 ;;set the drawing for grid-lines 
+		 (draw-axes graph *current-x*
+			    text-height
+			    x-axis-labels-y))))	  
 	  (draw-graph-area graph)
-
-	  (when (or (y-axis chart) (x-axis chart))
-	    ;;set the drawing for grid-lines 
-	    (draw-axes graph y-axis-labels-x 
-		       text-height
-		       x-axis-labels-y))
-
-	  ;;TODO: make this a property of the series
-	  (draw-series chart graph)
-	  (draw-graph-outline graph))))))
+	  (mapcar #'funcall gridline-fns))
+	(draw-series chart graph)
+	(draw-graph-outline graph)))))
 
 (defgeneric draw-series (chart graph))
 
