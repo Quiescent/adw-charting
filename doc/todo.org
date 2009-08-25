@@ -1,35 +1,28 @@
-ADW-CHARTING
+#ADW-CHARTING -*- mode:org -*-
 #+STARTUP: hidestars
 #+STARTUP: logdone
 #+AUTHOR: Ryan Davis
 #+EMAIL: ryan@acceleration.net
-#+TITLE: ADW-Charting Plans
+#+TITLE: ADW-Charting: Plans
 #+OPTIONS: num:nil
 
-* Fall 2008
+* Fall 2009
 ** process incoming patches
    have gotten a few via email
-** port documentation to be exported org file(s)
-   the current docs are generated using cl-who, and there's a lot of
-   code in doc.lisp that recreates the [[http://www.gnu.org/software/emacs/manual/html_node/org/HTML-export.html#HTML-export][org-mode HTML export]].  Probably
-   want three files:
-   - this todo
-   - introduction with examples
-   - API description
-** add bar charts to documentation
-** add documentation for google charts
+** get it asdf-installable
+* Spring 2010
+** convert repo to git
+** cleanup dead code
 ** review vecto backend, refactor with current knowledge
-   when I wrote a lot of this I was obsessed with mapcar and unfamilair with loop,
-   and much code can be eliminated or made much clearer with loop
+   when I wrote a lot of this I was obsessed with mapcar and unfamilair with loop/iterate,
+   and much code can be eliminated or made much clearer with loop/iterate
 ** signal an error when specifying a google chart that is too big for the google service
    maybe provide a restart to use the biggest valid height/width that keeps the aspect ratio?
 ** pull in alexandria for common utils
    might not be needed
-* Spring 2009
+* Summer 2010
 ** look at a smarter way to pick points/labels/bounds
-   - make many passes to see what will fit?
-   - maybe something like cl-unification or lisa would help?
-** get it asdf-installable
+   - change the order in which elements are drawn and keep counters to manage visual dependencies
 * Future
 ** move into a different place on clnet containing other ADW libraries
    We have a growing number of libraries at work that could be opened up,
