@@ -117,12 +117,14 @@ the Y axis")))
 	(offset-x graph *current-x*)
       
 	(when (draw-zero-p axis)
-	  (with-graphics-state
-	      (set-line-width 1)
-	    (set-rgb-stroke 0 0 0)
-	    (move (dp->gp graph (x (data-min graph)) 0))
-	    (line (dp->gp graph (x (data-max graph)) 0))
-	    (stroke))))
+	  (push (lambda ()
+		  (with-graphics-state
+		    (set-line-width 1)
+		    (set-rgb-stroke 0 0 0)
+		    (move (dp->gp graph (x (data-min graph)) 0))
+		    (line (dp->gp graph (x (data-max graph)) 0))
+		    (stroke)))
+		gridlines)))
 
       (when-let (axis (x-axis (chart graph)))
 	(loop for (txt x) in (calculate-x-axes graph)
@@ -136,12 +138,14 @@ the Y axis")))
 				    (line-to x
 					     (+ (y graph) (height graph)))))))
 	(when (draw-zero-p axis)
-	  (with-graphics-state
-	      (set-line-width 2)
-	    (set-rgb-stroke 0 0 0)
-	    (move (dp->gp graph 0 (y (data-min graph))))
-	    (line (dp->gp graph 0 (y (data-max graph))))
-	    (stroke)))))
+	  (push (lambda ()
+		  (with-graphics-state
+		    (set-line-width 2)
+		    (set-rgb-stroke 0 0 0)
+		    (move (dp->gp graph 0 (y (data-min graph))))
+		    (line (dp->gp graph 0 (y (data-max graph))))
+		    (stroke)))
+		gridlines))))
     gridlines)) 
 
 (defun calculate-x-axes (graph)
