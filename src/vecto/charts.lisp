@@ -1,10 +1,9 @@
 (in-package :adw-charting)
 
-(defvar *default-font-file*
-  (merge-pathnames
-   "FreeSans.ttf"
-   (asdf:component-pathname
-    (asdf:find-system :adw-charting))))
+(defvar *default-font-file* "/usr/share/fonts/truetype/ttf-dejavu/DejaVuSans.ttf"
+  "The default font file to pull from for putting text on the charts.
+This font is from http://dejavu-fonts.org/wiki/index.php?title=Main_Page
+which is in the ttf-dejavu(old) or ttf-dejavu-core(new) packages for debian/ubuntu.")
 
 (defvar *current-font* nil "a font object")
 (defvar *font* nil "a font object")
