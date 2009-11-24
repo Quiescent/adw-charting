@@ -1,0 +1,11 @@
+.svn
+bin
+build
+dist
+*~
+*#
+*.fasl
+bin/gainesville-green.com
+etc/apache.conf
+etc/init.d
+uploads
