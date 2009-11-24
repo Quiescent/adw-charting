@@ -299,7 +299,8 @@ the Y axis")
 					 #'<))))))
 
 (defmethod finalize-parameter ((key (eql :chxr)) val)
-  (let ((all-data (mapcan #'data (chart-elements *current-chart*))))
+  (let ((all-data (loop for i in (chart-elements *current-chart*)
+			append (data i))))
     (format nil "~{~a~^|~}"
 	    (loop for (idx valfn formatfn draw-zero-p) in val		 
 	       collect (format nil "~D,~{~,2F~^,~}" idx			       
