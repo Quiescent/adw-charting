@@ -26,4 +26,5 @@
        :add-slice
        :add-series
        :set-axis
-    ))
+    #:add-marker
+    #:add-legend))

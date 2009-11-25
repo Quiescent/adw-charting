@@ -99,12 +99,13 @@ the Y axis")
 		       for idx from 0
 		       do
 		    (when (eql (mode series) :line)
-		      (append-parameter :chm
-					(format nil "D,~a,~D,0,2,1"
-						(make-html-color (color series))
-						idx)
+		      (append-parameter
+		       :chm
+		       (format nil "D,~a,~D,0,2,1"
+			       (make-html-color (color series))
+			       idx)
 
-					chart))
+		       chart))
 			 
 		       collect
 		    (format nil "~{~D~^,~}"
@@ -148,15 +149,17 @@ the Y axis")
 (defun prepare-key (key)
   (string-downcase (princ-to-string key)))
 
+(defmethod get-parameter ((chart gchart) key &optional default)
+  (gethash key (parameters chart) default ))
+
 (defmethod set-parameter ((chart gchart) key value)
-  (setf (gethash key
-		 (parameters chart))
+  (setf (gethash key (parameters chart))
 	value))
 
 (defmacro set-parameters ((chart) &body params)
   `(progn
     ,@(loop for (k v) in params
-     collect 
+     collect
        `(set-parameter ,chart ,k ,v))))
 
 (defmethod ensure-default-parameters ((chart gchart))
@@ -231,6 +234,52 @@ the Y axis")
 		   title)
       (warn "trying to set nil title")))
 
+(defparameter +marker-types+
+  (list :arrow #\a
+	:cross #\c
+	:diamond #\d
+	:circle #\o
+	:square #\s
+	:x #\x
+	:vertical #\v
+	:full-vertical #\V
+	:horizontal #\h
+	))
+
+(defmethod add-marker (type series-idx 
+		       &key data-point x y
+		       (size 10) (color (make-color "000000"))
+		       (priority 0 ))
+  "adds a shape marker
+   http://code.google.com/apis/chart/styles.html#shape_markers
+  "
+  (assert (member type +marker-types+ :test #'eql)
+	  (type) "Type: ~a must be a member of ~a" type +marker-types+)
+  (let* ((dp (or data-point (format nil "~d:~d" x y)))
+	 (marker-def
+	 (format nil "~a~a,~a,~d,~a,~d,~d"
+		 (if (and x y) "@" "")
+		 (etypecase type
+		   (symbol (getf +marker-types+ type))
+		   (character type))
+		 (make-html-color color)
+		 series-idx
+		 dp
+		 size
+		 priority)))
+    (set-parameter *current-chart* :chm
+		   (append (get-parameter *current-chart* :chm)
+			   (list marker-def)))))
+
+(defmethod add-legend (label)
+  "adds a chart legend
+   http://code.google.com/apis/chart/labels.html#chart_legend
+  "
+  (set-parameter *current-chart*
+   :chdl (append (get-parameter *current-chart* :chdl)
+		 (list label)))
+  )
+
 (defun bar-spacing (bar-width-px &optional bar-seperation-px group-seperation-px)
   (set-parameter *current-chart*
 		 :chbh
@@ -278,6 +327,12 @@ the Y axis")
 
 (defmethod finalize-parameter (key (val list))
  (format nil "~{~a~^,~}" val))
+
+(defmethod finalize-parameter ((key (eql :chm)) val)
+  (format nil "~{~a~^|~}" val))
+
+(defmethod finalize-parameter ((key (eql :chdl)) val)
+  (format nil "~{~a~^|~}" val))
 
 (defun inline-break (format-string &rest args)
   "call BREAK with the given format and args, then return the args"

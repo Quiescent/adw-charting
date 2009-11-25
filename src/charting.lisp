@@ -134,7 +134,7 @@
 (defclass series (chart-element)
   ((data :accessor data
 	 :initarg :data
-	 :documentation "a list of (x y) pairs (as lists, not cons cells)")
+	 :documentation "a list of (x y &optional marker) pairs (as lists, not cons cells)")
    (mode :accessor mode
 	 :initarg :mode
 	 :initform 'default
@@ -188,8 +188,9 @@ across the chart")
 
 (defun add-series (label data &key color (mode 'default))
   "adds a series to the *current-chart*."
-  (push (make-instance 'series :label label :data data :color color :mode mode)
-	(chart-elements *current-chart*)))
+  (setf (chart-elements *current-chart*)
+	(append (chart-elements *current-chart*)
+		(list (make-instance 'series :label label :data data :color color :mode mode)))))
 
 (defun set-axis (axis title &key draw-gridlines-p
 		 (label-formatter #'default-label-formatter)
