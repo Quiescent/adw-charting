@@ -117,8 +117,10 @@ the Y axis")
 
 (defun interpolate (min max val &key (interpolated-max 100) (interpolated-min 0))
   (+ interpolated-min
-     (* (- interpolated-max interpolated-min) (/ (- val min)
-			    (- max min)))))
+     (* (- interpolated-max interpolated-min)
+	(if (eql min max) 0.5
+	    (/ (- val min)
+	       (- max min))))))
 
 (defun normalize-elements (chart)
   (let ((sum (reduce #'+
