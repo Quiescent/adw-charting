@@ -216,7 +216,8 @@ a function of 1 argument to control label formatting"
 					      (function label-formatter)))))
     (ccase axis
       (:x (setf (x-axis *current-chart*) ax))
-      (:y (setf (y-axis *current-chart*) ax)))))
+      (:y (setf (y-axis *current-chart*) ax))
+      (:x2 (setf (x2-axis *current-chart*) ax)))))
 
 (defun find-chart-extremes (chart)
   (let ((data-minmax (find-extremes

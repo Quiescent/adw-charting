@@ -32,6 +32,11 @@
 	   :initform nil
 	   :documentation "an axis object to determine formatting for
 the X axis")
+   (x2-axis :accessor x2-axis
+	    :initarg :x2-axis
+	    :initform nil
+	    :documentation "an axis object to determine formatting for
+the second X axis")
    (y-axis :accessor y-axis
 	   :initarg :y-axis
 	   :initform nil
@@ -295,11 +300,10 @@ the Y axis")
 
 (defun append-parameter (key val &optional (chart *current-chart*))
   "adds an axis, and returns the index of that axis"
-  (setf (gethash key (parameters chart))
-	(append (gethash key (parameters chart))
-		(list val)))
-  (position val (gethash key (parameters chart))))
-
+  (let ((new-val (append (gethash key (parameters chart))
+			 (list val))))
+    (setf (gethash key (parameters chart)) new-val)
+    (1- (length new-val))))
 
 (defun add-axis (val valfn axis &optional (chart *current-chart*))
   "adds an axis, and returns the index of that axis"
@@ -310,6 +314,9 @@ the Y axis")
       (append-parameter param (list idx valfn (label-formatter axis) (draw-zero-p axis)))))
 
 (defmethod (setf x-axis) :before (ax (chart gchart))
+  (add-axis "x" #'x ax chart))
+
+(defmethod (setf x2-axis) :before (ax (chart gchart))
   (add-axis "x" #'x ax chart))
 
 (defmethod (setf y-axis) :before (ax (chart gchart))
@@ -345,15 +352,15 @@ the Y axis")
   (format nil "~{~a~^|~}"
 	  (loop for (idx valfn formatfn draw-zero-p) in val
 		collect (format nil "~D:|~{~a~^|~}" idx
-				(mapcar formatfn
-					(sort
-					 (remove-duplicates
-					  (let ((vals (loop for elem in (chart-elements *current-chart*)
-							    nconc (mapcar valfn (data elem)))))
-					    ;;if we want to draw 0, add it to the list
-					    (when draw-zero-p (push 0 vals))
-					    vals))
-					 #'<))))))
+						    (mapcar formatfn
+							    (sort
+							     (remove-duplicates
+							      (let ((vals (loop for elem in (chart-elements *current-chart*)
+										nconc (mapcar valfn (data elem)))))
+								;;if we want to draw 0, add it to the list
+								(when draw-zero-p (push 0 vals))
+								vals))
+							     #'<))))))
 
 (defmethod finalize-parameter ((key (eql :chxr)) val)
   (let ((all-data (loop for i in (chart-elements *current-chart*)
