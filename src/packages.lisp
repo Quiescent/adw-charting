@@ -26,5 +26,8 @@
        :add-slice
        :add-series
        :set-axis
-    #:add-marker
-    #:add-legend))
+       #:add-marker
+       #:add-legend
+       #:chart-elements
+       #:*current-chart*
+       #:label))

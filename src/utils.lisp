@@ -31,3 +31,16 @@ VAR as the first argument to IF, executing the if-form
 or else-form depending on VAR"
   `(let ((,var ,expr))
     (if ,var ,if-form ,else-form)))
+
+(defun copy-instance (i)
+  "Copies a clos-instance"
+  (loop with i-class = (class-of i)
+	with c = (allocate-instance i-class)
+	for sd in (closer-mop:class-slots i-class)
+	for sn = (closer-mop:slot-definition-name sd)
+	when (slot-boundp i sn)
+	do (setf (slot-value c sn)
+		 (slot-value i sn))
+	finally
+	(reinitialize-instance c)
+	(return c)))

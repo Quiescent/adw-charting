@@ -120,8 +120,6 @@
   "saves the *current-chart* to the given stream."
   (save-chart-to-stream stream *current-chart*))
 
-
-
 (defclass slice (chart-element)  
   ((value :accessor value :initarg :value))
   (:documentation "this is a slice of a pie chart"))
@@ -138,7 +136,13 @@
    (mode :accessor mode
 	 :initarg :mode
 	 :initform 'default
-	 :documentation "a flag for how to render this series"))  
+	 :documentation "a flag for how to render this series")
+   (normalized-data
+    :accessor normalized-data :initarg :normalized-data :initform nil
+    :documentation "The data of this series normalized for all series on the chart")
+   (markers
+    :accessor markers :initarg :markers :initform nil
+    :documentation "A list of marker parameter configurations associated with this mark"))  
   (:documentation "represents a line on a line chart"))
 
 (defun default-label-formatter (value)
@@ -188,9 +192,11 @@ across the chart")
 
 (defun add-series (label data &key color (mode 'default))
   "adds a series to the *current-chart*."
-  (setf (chart-elements *current-chart*)
-	(append (chart-elements *current-chart*)
-		(list (make-instance 'series :label label :data data :color color :mode mode)))))
+  (let ((series (make-instance 'series :label label :data data :color color :mode mode)))
+    (setf (chart-elements *current-chart*)
+	  (append (chart-elements *current-chart*)
+		  (list series)))
+    series))
 
 (defun set-axis (axis title &key draw-gridlines-p
 		 (label-formatter #'default-label-formatter)

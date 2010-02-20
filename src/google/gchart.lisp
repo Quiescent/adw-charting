@@ -67,10 +67,15 @@ the Y axis")
 
 (defun make-html-color (color)
   "takes a standard (r g b) color list and returns the closest HTML equivalent"
-  (format nil "~{~2,'0X~}"
-	  (mapcar #'(lambda (c)
-		      (ceiling (interpolate 0 1.0 c :interpolated-max 255)))
-		  color)))
+  (etypecase color
+    (string (if (char-equal #\# (elt color 0))
+		(subseq color 1 7)
+		color))
+    (list 
+       (format nil "~{~2,'0X~}"
+	       (mapcar #'(lambda (c)
+			   (ceiling (interpolate 0 1.0 c :interpolated-max 255)))
+		       color)))))
 
 (defmethod build-data ((chart gchart))
   "helper to build the list of data"
@@ -83,11 +88,15 @@ the Y axis")
 			    (normalize-elements chart)))
     (:line
        ;;pairs of X | Y, normalized to 0-100 for google's chart algorithms
+       (normalize chart)
        (format nil "t:~{~a~^|~}"
-	       (loop for (exes wyes series) in (normalized-series chart)
-		     collect (format nil
-				     "~{~,2F~^,~}|~{~,2F~^,~}"
-				     exes wyes))))
+	       (iter (for series in (chart-elements chart))
+		     (collect (iter (for (x y . rest) in (normalized-data series))
+				    (collect x into xs)
+				    (collect y into ys)
+				    (finally (return (format nil
+							     "~{~,2F~^,~}|~{~,2F~^,~}"
+							     xs ys))))))))
     ((:v-bar :h-bar :v-gbar :h-gbar)
        ;;these want the bars specified as wyes1|wyes2|wyesN, so
        ;;get all the lists of wyes sorted out with 0s for the missing values
@@ -134,18 +143,32 @@ the Y axis")
     (loop for elem in (chart-elements chart)
 	  collect (/ (value elem) sum))))
 
+(defun normalize (&optional (chart *current-chart*))
+  (destructuring-bind ((min-x min-y) (max-x max-y))
+      (find-chart-extremes chart)
+    (iter (for series in (chart-elements chart))
+	  (unless (normalized-data series) ;;dont renormalize if someone already did it
+	    (iter (for (x y . rest) in (data series))
+		  (collect (append (list (interpolate min-x max-x x)
+					 (interpolate min-y max-y y))
+				   rest) into data)
+		  (finally (setf (normalized-data series) data)))))))
+
+(defun finalize-bounds-and-labels (&optional (chart *current-chart*))
+  (iter (for key in (list :chdl :chxl :chxr))
+	(set-parameter chart (prepare-key key)
+		       (finalize-parameter key (get-parameter chart key)))
+	(remove-parameter chart key)))
+
 (defun normalized-series (chart)
   (destructuring-bind ((min-x min-y) (max-x max-y))
       (find-chart-extremes chart)
-    (loop for series in (chart-elements chart)
-       for exes = nil then nil
-       for wyes = nil then nil
-       do
-	 (loop for (x y) in (reverse (data series))
-	    do
-	      (push (interpolate min-x max-x x) exes)
-	      (push (interpolate min-y max-y y) wyes))
-       collect (list exes wyes series))))
+    (iter (for series in (chart-elements chart))
+	  (collect
+	      (iter (for (x y) in (data series))
+		    (collect (interpolate min-x max-x x) into exes)
+		    (collect (interpolate min-y max-y y) into wyes)
+		    (finally (return (list exes wyes series))))))))
 
 (defmethod build-labels ((chart gchart))
   "helper to build the list of labels"
@@ -162,6 +185,9 @@ the Y axis")
 (defmethod set-parameter ((chart gchart) key value)
   (setf (gethash key (parameters chart))
 	value))
+
+(defmethod remove-parameter ((chart gchart) key)
+  (remhash key (parameters chart)))
 
 (defmacro set-parameters ((chart) &body params)
   `(progn
@@ -253,30 +279,59 @@ the Y axis")
 	:horizontal #\h
 	))
 
-(defmethod add-marker (type series-idx 
+(defclass marker ()
+  ((marker-type :accessor marker-type :initarg :type :initarg :marker-type :initform nil)
+   (series-index :accessor series-index :initarg :series-index :initform nil)
+   (size :accessor size :initarg :size :initform 10)
+   (color :accessor color :initarg :color :initform (make-color "000000"))
+   (priority :accessor priority :initarg :priority :initform 0)
+   (data-point :accessor data-point :initarg :data-point :initform nil)
+   (x :accessor x :initarg :x :initform nil)
+   (y :accessor y :initarg :y :initform nil)))
+
+(defun marker-definition ( marker )
+  "The google url version of a marker definition"
+  (let ((type (marker-type marker)))
+    (assert (member type +marker-types+ :test #'eql)
+	    (type) "Type: ~a must be a member of ~a" type +marker-types+)
+    (let ((dp (or (data-point marker) (format nil "~d:~d" (x marker) (y marker)))))
+      (format nil "~a~a,~a,~d,~a,~d,~d"
+	      (if (and (x marker) (y marker)) "@" "")
+	      (etypecase type
+		(symbol (getf +marker-types+ type))
+		(character type))
+	      (make-html-color (color marker))
+	      (series-index marker)
+	      dp
+	      (size marker)
+	      (priority marker)))))
+
+(defun add-marker-to-parameter (def)
+  (append-parameter :chm def))
+
+(defun add-marker (type series-idx &rest args
 		       &key data-point x y
 		       (size 10) (color (make-color "000000"))
-		       (priority 0 ))
+		       (priority 0))
   "adds a shape marker
    http://code.google.com/apis/chart/styles.html#shape_markers
   "
-  (assert (member type +marker-types+ :test #'eql)
-	  (type) "Type: ~a must be a member of ~a" type +marker-types+)
-  (let* ((dp (or data-point (format nil "~d:~d" x y)))
-	 (marker-def
-	 (format nil "~a~a,~a,~d,~a,~d,~d"
-		 (if (and x y) "@" "")
-		 (etypecase type
-		   (symbol (getf +marker-types+ type))
-		   (character type))
-		 (make-html-color color)
-		 series-idx
-		 dp
-		 size
-		 priority)))
-    (set-parameter *current-chart* :chm
-		   (append (get-parameter *current-chart* :chm)
-			   (list marker-def)))))
+  (declare (ignore data-point x y size color priority))  
+  (append-parameter :chm (apply #'make-instance
+				'marker :type type :series-index series-idx args)))
+
+(defun add-marker-to-series (type series &rest args
+			     &key data-point x y
+			     (size 10) (color (make-color "000000"))
+			     (priority 0 ))
+  "adds a shape marker
+   http://code.google.com/apis/chart/styles.html#shape_markers
+  "
+  (declare (ignore data-point x y size color priority))
+  (setf (markers series)
+	(append (markers series)
+		(list (apply #'make-instance
+			     'marker :type type args)))))
 
 (defmethod add-legend (label)
   "adds a chart legend
@@ -338,9 +393,16 @@ the Y axis")
  (format nil "~{~a~^,~}" val))
 
 (defmethod finalize-parameter ((key (eql :chm)) val)
-  (format nil "~{~a~^|~}" val))
+  "Finalize line markers
+   http://code.google.com/apis/chart/docs/chart_params.html#gcharts_line_markers"
+  (format nil "~{~a~^|~}" (iter (for v in val)
+				(collect (etypecase v
+					   (string v)
+					   (marker (marker-definition v)))))))
 
 (defmethod finalize-parameter ((key (eql :chdl)) val)
+  "Finalize chart data chart legend
+   http://code.google.com/apis/chart/docs/chart_params.html#gcharts_legend"
   (format nil "~{~a~^|~}" val))
 
 (defun inline-break (format-string &rest args)
@@ -349,6 +411,7 @@ the Y axis")
   (apply #'values args))
 
 (defmethod finalize-parameter ((key (eql :chxl)) val)
+  "Finalize the axis label parameter"
   (format nil "~{~a~^|~}"
 	  (loop for (idx valfn formatfn draw-zero-p) in val
 		collect (format nil "~D:|~{~a~^|~}" idx
@@ -363,6 +426,8 @@ the Y axis")
 							     #'<))))))
 
 (defmethod finalize-parameter ((key (eql :chxr)) val)
+  "Finalize the axis range parameter
+   http://code.google.com/apis/chart/docs/chart_params.html#axis_range"
   (let ((all-data (loop for i in (chart-elements *current-chart*)
 			append (data i))))
     (format nil "~{~a~^|~}"
@@ -387,6 +452,13 @@ the Y axis")
 (defmethod build-parameters ((chart gchart))  
   "returns an alist that defines to google what
 it should be rendering"
+  (iter (for series in (chart-elements chart))
+	(for i upfrom 0)
+	(break "~a" (length (markers series)))
+	(iter (for marker in (markers series))
+	      (setf (series-index marker) i)
+	      
+	      (add-marker-to-parameter marker)))
   (build-parameters (parameters chart)))
 
 (defmethod build-parameters ((params hash-table))  
@@ -418,14 +490,13 @@ it should be rendering"
 (defgeneric build-chart-url (thing)
   (:method ((chart gchart))
     (ensure-default-parameters chart)
-    (build-chart-url (parameters chart)))
-  (:method ((params hash-table))
     (concatenate 'string
 		 +google-chart-url+
 		 "?"
 		 (drakma::alist-to-url-encoded-string
-		  (build-parameters params)
-		  drakma:*drakma-default-external-format*))))
+		  (build-parameters chart)
+		  drakma:*drakma-default-external-format*))
+    ))
 
 (defmacro with-gchart ((type width height) &body body)
   "creates a new context with a gchart of the given type, width, and height."
@@ -434,6 +505,12 @@ it should be rendering"
 			 :chart-type ,type
 			 :width ,width
 			 :height ,height)))
+     (with-color-stack ()
+       ,@body)))
+
+(defmacro with-gchart-clone ((&key (gchart '*current-chart*)) &body body)
+  "creates a new context with a gchart of the given type, width, and height."
+  `(let ((*current-chart* (copy-instance ,gchart)))
      (with-color-stack ()
        ,@body)))
 
