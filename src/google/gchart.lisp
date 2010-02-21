@@ -155,10 +155,11 @@ the Y axis")
 		  (finally (setf (normalized-data series) data)))))))
 
 (defun finalize-bounds-and-labels (&optional (chart *current-chart*))
-  (iter (for key in (list :chdl :chxl :chxr))
-	(set-parameter chart (prepare-key key)
-		       (finalize-parameter key (get-parameter chart key)))
-	(remove-parameter chart key)))
+  (iter (for key in (list :chxl :chxr :chdl))
+	(when (get-parameter chart key)
+	  (set-parameter chart (prepare-key key)
+			 (finalize-parameter key (get-parameter chart key)))
+	  (remove-parameter chart key))))
 
 (defun normalized-series (chart)
   (destructuring-bind ((min-x min-y) (max-x max-y))
@@ -519,7 +520,6 @@ it should be rendering"
 	(percentage (if (> 1 percentage)
 			(* 100 percentage)
 			percentage)))
-    
     (flet ((add-param (k v)
 	     (setf (gethash k params) v)))
       (add-param :chs (format nil "~ax~a" width (truncate (* width .5))))
@@ -531,5 +531,4 @@ it should be rendering"
 	  (add-param :chl label)
 	  (when show-percentage
 	    (add-param :chl (format nil "~D%" (truncate percentage)))))
-      
       (build-chart-url params))))
