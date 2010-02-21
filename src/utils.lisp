@@ -32,7 +32,26 @@ or else-form depending on VAR"
   `(let ((,var ,expr))
     (if ,var ,if-form ,else-form)))
 
-(defun copy-instance (i)
+
+(defun copy (obj &optional deep)
+  (typecase obj
+    (standard-object (copy-instance obj deep))
+    (hash-table (copy-hashtable obj deep))
+    (sequence (copy-seq obj))
+    ;; Dont know how to copy it?
+    (T obj)))
+
+(defun copy-hashtable (ht &optional deep)
+  (let ((new (make-hash-table
+	      :test (hash-table-test ht)
+	      :size (hash-table-size ht)))) 
+    (iter (for (key value) in-hashtable ht)
+	  (setf (gethash key new) (if deep
+				      (copy value)
+				      value)))
+    new))
+
+(defun copy-instance (i &optional deep)
   "Copies a clos-instance"
   (loop with i-class = (class-of i)
 	with c = (allocate-instance i-class)
@@ -40,7 +59,9 @@ or else-form depending on VAR"
 	for sn = (closer-mop:slot-definition-name sd)
 	when (slot-boundp i sn)
 	do (setf (slot-value c sn)
-		 (slot-value i sn))
+		 (if deep
+		     (copy (slot-value i sn) T)
+		     (slot-value i sn)))
 	finally
 	(reinitialize-instance c)
 	(return c)))

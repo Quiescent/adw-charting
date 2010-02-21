@@ -454,10 +454,8 @@ the Y axis")
 it should be rendering"
   (iter (for series in (chart-elements chart))
 	(for i upfrom 0)
-	(break "~a" (length (markers series)))
 	(iter (for marker in (markers series))
 	      (setf (series-index marker) i)
-	      
 	      (add-marker-to-parameter marker)))
   (build-parameters (parameters chart)))
 
@@ -510,7 +508,7 @@ it should be rendering"
 
 (defmacro with-gchart-clone ((&key (gchart '*current-chart*)) &body body)
   "creates a new context with a gchart of the given type, width, and height."
-  `(let ((*current-chart* (copy-instance ,gchart)))
+  `(let ((*current-chart* (copy ,gchart T)))
      (with-color-stack ()
        ,@body)))
 
