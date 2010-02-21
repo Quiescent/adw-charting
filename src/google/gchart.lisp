@@ -43,7 +43,9 @@ the second X axis")
 	   :documentation "and axis object to determine formatting for
 the Y axis")
    (axes :accessor axes
-	 :initform (make-hash-table))))
+	 :initform (make-hash-table))
+   (built-axises :accessor built-axises :initform nil
+    :documentation "A bit to tell us if we have build the axises yet as you might wish to vary some data on a given set of built axises")))
 
 (defvar *chart-types* '((:pie . "p")
 			(:pie-3d . "p3")
@@ -155,6 +157,7 @@ the Y axis")
 		  (finally (setf (normalized-data series) data)))))))
 
 (defun finalize-bounds-and-labels (&optional (chart *current-chart*))
+  (build-chart-axises chart)
   (iter (for key in (list :chxl :chxr :chdl))
 	(when (get-parameter chart key)
 	  (set-parameter chart (prepare-key key)
@@ -361,22 +364,21 @@ the Y axis")
     (setf (gethash key (parameters chart)) new-val)
     (1- (length new-val))))
 
-(defun add-axis (val valfn axis &optional (chart *current-chart*))
+(defun clear-axis-parameters (&optional (chart *current-chart*))
+  (setf (built-axises chart) nil)
+  (iter (for k in (list :chxt :chxr :chxl))
+	(remove-parameter chart k)
+	(remove-parameter chart (prepare-key k))))
+
+(defun add-axis-parameters (axis val valfn &optional (chart *current-chart*))
   "adds an axis, and returns the index of that axis"
+  (when (and axis (not (built)))
     (let ((idx (append-parameter :chxt val chart))
 	  (param (if (eql :auto (data-interval axis))
 		     :chxr :chxl)))
       (setf (gethash idx (axes chart)) axis)
-      (append-parameter param (list idx valfn (label-formatter axis) (draw-zero-p axis)))))
+      (append-parameter param (list idx valfn (label-formatter axis) (draw-zero-p axis))))))
 
-(defmethod (setf x-axis) :before (ax (chart gchart))
-  (add-axis "x" #'x ax chart))
-
-(defmethod (setf x2-axis) :before (ax (chart gchart))
-  (add-axis "x" #'x ax chart))
-
-(defmethod (setf y-axis) :before (ax (chart gchart))
-  (add-axis "y" #'y ax chart))
 
 (defun add-features (&rest names)
   (mapc #'add-feature names))
@@ -449,15 +451,25 @@ the Y axis")
 				     (mapcar scalefn minmax)
 				     minmax))))))))
 
-
-(defmethod build-parameters ((chart gchart))  
-  "returns an alist that defines to google what
-it should be rendering"
+(defmethod build-series-markers ((chart gchart))
   (iter (for series in (chart-elements chart))
 	(for i upfrom 0)
 	(iter (for marker in (markers series))
 	      (setf (series-index marker) i)
-	      (add-marker-to-parameter marker)))
+	      (add-marker-to-parameter marker))))
+
+(defmethod build-chart-axises ((chart gchart))
+  (unless (built-axises chart)
+    (setf (built-axises chart) T)
+    (add-axis-parameters (x-axis chart) "x" #'x chart)
+    (add-axis-parameters (x2-axis chart) "x" #'x chart)
+    (add-axis-parameters (y-axis chart) "y" #'y chart)))
+
+(defmethod build-parameters ((chart gchart))  
+  "returns an alist that defines to google what
+it should be rendering"
+  (build-series-markers chart)
+  (build-chart-axises chart)
   (build-parameters (parameters chart)))
 
 (defmethod build-parameters ((params hash-table))  

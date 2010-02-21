@@ -26,8 +26,15 @@
        :add-slice
        :add-series
        :set-axis
+       #:color
        #:add-marker
        #:add-legend
        #:chart-elements
        #:*current-chart*
-       #:label))
+       #:label
+       #:label-formatter
+       #:series
+       #:x-axis
+       #:x2-axis
+       #:y-axis
+       #:data-interval))
