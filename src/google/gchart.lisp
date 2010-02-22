@@ -372,7 +372,7 @@ the Y axis")
 
 (defun add-axis-parameters (axis val valfn &optional (chart *current-chart*))
   "adds an axis, and returns the index of that axis"
-  (when (and axis (not (built)))
+  (when axis 
     (let ((idx (append-parameter :chxt val chart))
 	  (param (if (eql :auto (data-interval axis))
 		     :chxr :chxl)))

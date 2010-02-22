@@ -37,4 +37,5 @@
        #:x-axis
        #:x2-axis
        #:y-axis
-       #:data-interval))
+       #:data-interval
+       #:data))
