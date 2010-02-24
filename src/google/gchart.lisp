@@ -71,7 +71,7 @@ the Y axis")
   "takes a standard (r g b) color list and returns the closest HTML equivalent"
   (etypecase color
     (string (if (char-equal #\# (elt color 0))
-		(subseq color 1 7)
+		(subseq color 1)
 		color))
     (list 
        (format nil "~{~2,'0X~}"
@@ -158,7 +158,7 @@ the Y axis")
 
 (defun finalize-bounds-and-labels (&optional (chart *current-chart*))
   (build-chart-axises chart)
-  (iter (for key in (list :chxl :chxr :chdl))
+  (iter (for key in (list :chxl :chxr :chdl :chxs))
 	(when (get-parameter chart key)
 	  (set-parameter chart (prepare-key key)
 			 (finalize-parameter key (get-parameter chart key)))
@@ -366,7 +366,7 @@ the Y axis")
 
 (defun clear-axis-parameters (&optional (chart *current-chart*))
   (setf (built-axises chart) nil)
-  (iter (for k in (list :chxt :chxr :chxl))
+  (iter (for k in (list :chxt :chxr :chxl :chxs))
 	(remove-parameter chart k)
 	(remove-parameter chart (prepare-key k))))
 
@@ -377,7 +377,10 @@ the Y axis")
 	  (param (if (eql :auto (data-interval axis))
 		     :chxr :chxl)))
       (setf (gethash idx (axes chart)) axis)
-      (append-parameter param (list idx valfn (label-formatter axis) (draw-zero-p axis))))))
+      (append-parameter param (list idx valfn (label-formatter axis) (draw-zero-p axis)))
+      (when (color axis)
+	(append-parameter :chxs #?"${idx},${ (color axis) }"))
+      )))
 
 
 (defun add-features (&rest names)
@@ -405,6 +408,11 @@ the Y axis")
 
 (defmethod finalize-parameter ((key (eql :chdl)) val)
   "Finalize chart data chart legend
+   http://code.google.com/apis/chart/docs/chart_params.html#gcharts_legend"
+  (format nil "~{~a~^|~}" val))
+
+(defmethod finalize-parameter ((key (eql :chxs)) val)
+  "Finalize chart data chart axis label styles
    http://code.google.com/apis/chart/docs/chart_params.html#gcharts_legend"
   (format nil "~{~a~^|~}" val))
 

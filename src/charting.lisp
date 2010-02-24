@@ -183,7 +183,8 @@ across the chart")
 	  :initarg :angle)
    (scalefn :accessor scalefn
 	  :initarg :scalefn
-	  :documentation "Values will be passed through this function for scaling prior to display"))
+	  :documentation "Values will be passed through this function for scaling prior to display")
+   (color :accessor color :initarg :color :initform nil))
   (:documentation "represents an axis on a line chart"))
 
 (defmethod axis-label ((axis axis) data)
