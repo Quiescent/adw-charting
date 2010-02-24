@@ -379,7 +379,7 @@ the Y axis")
       (setf (gethash idx (axes chart)) axis)
       (append-parameter param (list idx valfn (label-formatter axis) (draw-zero-p axis)))
       (when (color axis)
-	(append-parameter :chxs #?"${idx},${ (color axis) }"))
+	(append-parameter :chxs (format nil "~a,~a" idx (make-html-color (color axis)))))
       )))
 
 
