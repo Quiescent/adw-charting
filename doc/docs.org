@@ -25,7 +25,7 @@ http://common-lisp.net/project/adw-charting/adw-charting.tar.gz
 * Installation
 ADW-Charting is not yet asdf-installable, but that is on the [[file:todo.org][todo list]].
 For now, download the tarball at http://common-lisp.net/project/adw-charting/adw-charting.tar.gz
-or go straight to the darcs repository located at http://common-lisp.net/project/adw-charting/darcs/adw-charting
+or go straight to the git repository located at http://common-lisp.net/project/adw-charting/git/adw-charting.git
 
 * Rendering Backends
 ADW-Charting has two rendering backends, one using Vecto to create PNG
