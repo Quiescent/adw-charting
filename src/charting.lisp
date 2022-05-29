@@ -41,11 +41,11 @@
   ((width :accessor width
 	  :initarg :width
 	  :type integer
-	  :initform nil)
+	  :initform 0)
    (height :accessor height
 	   :initarg :height
 	   :type integer
-	   :initform nil)))
+	   :initform 0)))
 
 (defclass point ()
   ((x :accessor x
